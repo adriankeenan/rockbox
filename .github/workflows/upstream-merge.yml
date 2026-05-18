@@ -33,7 +33,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Add upstream remote
-        run: git remote add upstream https://git.rockbox.org/rockbox.git
+        run: git remote add upstream https://git.rockbox.org/cgit/rockbox.git
 
       - name: Fetch upstream master
         run: git fetch upstream master --no-tags
