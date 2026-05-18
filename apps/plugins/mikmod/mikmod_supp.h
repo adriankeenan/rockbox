@@ -29,6 +29,8 @@
 #define strcat(a,b)         rb->strcat(a,b)
 #undef strncmp
 #define strncmp(a,b,c)      rb->strncmp(a,b,c)
+#undef strncpy
+#define strncpy(a,b,c)      rb->strncpy(a,b,c)
 #undef strcasecmp
 #define strcasecmp(a,b)     rb->strcasecmp(a,b)
 #undef strstr
@@ -67,30 +69,6 @@ void mmsupp_printf(const char *fmt, ...);
 int mmsupp_sprintf(char *buf, const char *fmt, ... );
 
 extern const struct plugin_api * rb;
-
-#ifdef SIMULATOR
-
-#define SAMPLE_RATE SAMPR_44  /* Required by Simulator */
-
-#elif ((CONFIG_PLATFORM & PLATFORM_HOSTED) || defined(CPU_MIPS))
-
-#define SAMPLE_RATE SAMPR_44 /* All MIPS and hosted targets are fast */
-
-#elif defined(CPU_ARM)
-
-/* Treat ARMv5+ as fast */
-#if (ARM_ARCH >= 5)
-#define SAMPLE_RATE SAMPR_44
-#else
-#define SAMPLE_RATE HW_SAMPR_MIN_GE_22
-#endif
-
-#else /* !CPU_ARM */
-
-/* Treat everyone else as slow */
-#define SAMPLE_RATE HW_SAMPR_MIN_GE_22
-
-#endif /* !SIMULATOR */
 
 #define BUF_SIZE 4096*8
 #define NBUF   2

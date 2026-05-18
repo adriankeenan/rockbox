@@ -466,11 +466,15 @@ void I_SubmitSound(void)
    if (!enable_sound)
       return;
 
-   rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, &get_more, NULL, 0);
+   static const struct mixer_play_cbs cbs = {
+       .get_more = get_more,
+   };
+   rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, &cbs, NULL, 0);
 }
 
 void I_ShutdownSound(void)
 {
+   rb->pcmbuf_fade(false, false); /* Mute channel */
    rb->mixer_channel_stop(PCM_MIXER_CHAN_PLAYBACK);
    rb->mixer_set_frequency(HW_SAMPR_DEFAULT);
 }
@@ -491,8 +495,9 @@ void I_InitSound()
            break;
    }
    if (i == caps->num_samprs)
-       i = SAMPR_44;
-   samplerate = caps->samprs[i];
+       samplerate = SAMPR_44;
+   else
+       samplerate = caps->samprs[i];
 
    // Initialize external data (all sounds) at start, keep static.
    printf( "I_InitSound: ");
@@ -504,6 +509,7 @@ void I_InitSound()
    rb->audio_set_output_source(AUDIO_SRC_PLAYBACK);
 #endif
    rb->mixer_set_frequency(samplerate);
+   rb->pcmbuf_fade(false, true); /* Be sure channel is audible */
 
    vol_lookup=malloc(128*256*sizeof(int));
 

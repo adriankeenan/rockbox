@@ -40,17 +40,9 @@
 #define calloc(elements, elem_size) tlsf_calloc(elements, elem_size)
 
 /* Audio declarations. */
-#ifdef SIMULATOR
-  #define PD_SAMPLERATE 44100
-#elif (HW_SAMPR_CAPS & SAMPR_CAP_22)
-  #define PD_SAMPLERATE 22050
-#elif (HW_SAMPR_CAPS & SAMPR_CAP_32)
-  #define PD_SAMPLERATE 32000
-#elif (HW_SAMPR_CAPS & SAMPR_CAP_44)
-  #define PD_SAMPLERATE 44100
-#else
-  #error No sufficient sample rate available!
-#endif
+/* Maximum sample rate; used for buffer sizing.
+ * Actual rate is determined at runtime from pcm sink capabilities. */
+#define PD_SAMPLERATE 44100
 #define PD_SAMPLES_PER_HZ ((PD_SAMPLERATE / HZ) + \
                            (PD_SAMPLERATE % HZ > 0 ? 1 : 0))
 #define PD_OUT_CHANNELS 2
@@ -167,6 +159,9 @@ void pd_init(void);
 
 #undef strncat
 #define strncat rb_strncat
+
+#undef strncpy
+#define strncpy rb->strncpy
 
 //#ifndef SIMULATOR
 /*FIXME: is it a correct replacement??? */
@@ -321,6 +316,15 @@ enum pd_key_id
     #define PDPOD_WHEELLEFT BUTTON_UP
     #define PDPOD_WHEELRIGHT BUTTON_DOWN
     #define PDPOD_ACTION    BUTTON_SELECT
+#elif (CONFIG_KEYPAD == EROSQ_PAD)
+    #define PDPOD_QUIT      BUTTON_POWER
+    #define PDPOD_PLAY      BUTTON_PLAY
+    #define PDPOD_PREVIOUS  BUTTON_PREV
+    #define PDPOD_NEXT      BUTTON_NEXT
+    #define PDPOD_MENU      BUTTON_MENU
+    #define PDPOD_WHEELLEFT BUTTON_SCROLL_BACK
+    #define PDPOD_WHEELRIGHT BUTTON_SCROLL_FWD
+    #define PDPOD_ACTION    BUTTON_BACK
 #else
     #warning "No keys defined for this architecture!"
 #endif

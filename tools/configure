@@ -939,7 +939,7 @@ devkitarmcc () {
         GCCOPTS=`echo $GCCOPTS | sed -e s/\ -Os/\ -Og/`
     fi
 
-    GCCOPTS="$GCCOPTS -fno-builtin -g -Wno-unused-result"
+    GCCOPTS="$GCCOPTS -fno-builtin -g -Wno-unused-result -Wno-char-subscripts"
     GCCOPTS="$GCCOPTS -I$DEVKITPRO/libctru/include -I$DEVKITPRO/portlibs/3ds/include"
     GCCOPTS="$GCCOPTS -mword-relocations -ffunction-sections -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft"
     GCCOPTS="$GCCOPTS -D_GNU_SOURCE=1 -D_REENTRANT -masm-syntax-unified"
@@ -1531,6 +1531,9 @@ help() {
     --with-address-sanitizer
                       Enables the AddressSanitizer feature. Forces SDL threads.
     --with-ubsan      Enables the UB Sanitizer feature.  Forces SDL threads.
+    --with-stack-protector[=MODE]
+                      Enable -fstack-protector-MODE option. With no MODE,
+                      enables the normal -fstack-protector option.
     --32-bit          Force a 32-bit simulator (use with --sdl-threads for duke3d)
     --prefix          Target installation directory
     --compiler-prefix Override compiler prefix (inherently dangerous)
@@ -1557,6 +1560,7 @@ ARG_THREAD_SUPPORT=
 ARG_32BIT=
 ARG_ADDR_SAN=
 ARG_UBSAN=
+ARG_STACK_PROTECTOR=
 ARG_PLUGINS=
 err=
 for arg in "$@"; do
@@ -1583,6 +1587,8 @@ for arg in "$@"; do
                       ARG_THREAD_SUPPORT=0;;
         --with-address-sanitizer) ARG_ADDR_SAN=1;;
         --with-ubsan) ARG_UBSAN=1;;
+        --with-stack-protector=*) ARG_STACK_PROTECTOR=`echo "$arg" | cut -d = -f 2`;;
+        --with-stack-protector) ARG_STACK_PROTECTOR=default;;
         --prefix=*)   ARG_PREFIX=`echo "$arg" | cut -d = -f 2`;;
         --compiler-prefix=*)   ARG_COMPILER_PREFIX=`echo "$arg" | cut -d = -f 2`;;
 		--help)       help;;
@@ -3970,6 +3976,7 @@ fi
     # player version, for bootloader usage
     # version 3
     extradefines="$extradefines -DEROSQN_VER=3"
+    bootloader_only=1
     ;;
 
     249|erosqnative_v4)
@@ -3998,6 +4005,7 @@ fi
     # player version, for bootloader usage
     # version 4
     extradefines="$extradefines -DEROSQN_VER=4"
+    bootloader_only=1
     ;;
 
    232|ihifi770c)
@@ -4159,7 +4167,7 @@ fi
     boottool="cp "
     bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
     bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
-    output="rockbox"
+    output="rockbox.elf"
     bootoutput="rockbox"
     appextra="recorder:gui"
     plugins="yes"
@@ -4404,6 +4412,11 @@ fi
 
 if [ -z "$debug" ]; then
   GCCOPTS="$GCCOPTS $GCCOPTIMIZE"
+fi
+
+if [ "$bootloader_only" = "1" -a "$bootloader" != "1" ]; then
+    echo "Target can only be used for bootloader builds."
+    exit 9
 fi
 
 # if building a simulator for an hosted port, APPLICATION
@@ -4694,6 +4707,17 @@ if [ "$ARG_RBDIR" != "" ]; then
   echo "Using alternate rockbox dir: ${rbdir}"
 fi
 
+if [ "$ARG_STACK_PROTECTOR" != "" ]; then
+    echo "Stack protector mode: $ARG_STACK_PROTECTOR"
+    extradefines="$extradefines -DUSE_STACK_PROTECTOR"
+
+    if [ "$ARG_STACK_PROTECTOR" = "default" ]; then
+        GCCOPTS="$GCCOPTS -fstack-protector"
+    else
+        GCCOPTS="$GCCOPTS -fstack-protector-${ARG_STACK_PROTECTOR}"
+    fi
+fi
+
 cat > autoconf.h.new <<EOF
 /* This header was made by configure */
 #ifndef __BUILD_AUTOCONF_H
@@ -4848,6 +4872,10 @@ if [ -n "$ARG_PLUGINS" ]; then
              echo "Warning: Plugin '$p' found neither as file nor directory in $chk_plugin_dir. Use ':' as the separator."
         fi
     done
+else
+    # Build the default set of plugins
+    selected_src="DEFAULT"
+    selected_subdirs="DEFAULT"
 fi
 
 ### end of cmdline

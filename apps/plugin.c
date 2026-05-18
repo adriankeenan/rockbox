@@ -49,6 +49,7 @@
 #include "core_keymap.h"
 #include "language.h"
 #include "statusbar-skinned.h"
+#include "panic.h"
 
 #if CONFIG_CHARGING
 #include "power.h"
@@ -642,7 +643,6 @@ static const struct plugin_api rockbox_api = {
     sound_get_pitch,
     sound_set_pitch,
 #endif
-    &hw_freq_sampr[0],
     pcm_play_lock,
     pcm_play_unlock,
     pcm_current_sink_caps,
@@ -871,6 +871,11 @@ static const struct plugin_api rockbox_api = {
 
     /* new stuff at the end, sort into place next time
        the API gets incompatible */
+    panicf,
+    gui_synclist_scroll_stop,
+    add_event_ex,
+    remove_event_ex,
+    strncpy,
 };
 
 static int plugin_buffer_handle;
@@ -891,7 +896,9 @@ int plugin_load(const char* plugin, const void* parameter)
                                    !strcmp("playing_time.rock", sepch + 1) ||
                                    !strcmp("main_menu_config.rock", sepch + 1) ||
                                    !strcmp("text_viewer.rock", sepch + 1) ||
-                                   !strcmp("disktidy.rock", sepch + 1));
+                                   !strcmp("view_text.rock", sepch + 1) ||
+                                   !strcmp("disktidy.rock", sepch + 1) ||
+                                   !strcmp("open_plugins.rock", sepch + 1));
 
     if (current_plugin_handle)
     {
@@ -1016,8 +1023,11 @@ int plugin_load(const char* plugin, const void* parameter)
     pop_current_activity_without_refresh();
     if (get_current_activity() != ACTIVITY_WPS)
     {
+        skin_defer_rendering(true);
         FOR_NB_SCREENS(i)
                 skin_update(CUSTOM_STATUSBAR, i, SKIN_REFRESH_ALL);
+        skin_defer_rendering(false);
+        sb_skin_force_next_update();
     }
 
     if (!pfn_tsr_exit)

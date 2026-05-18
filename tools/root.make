@@ -96,10 +96,8 @@ ifndef APP_TYPE
   endif
 endif
 
-ifeq (,$(findstring bootloader,$(APPSDIR)))
-  ifeq (,$(findstring checkwps,$(APP_TYPE)))
-    include $(ROOTDIR)/lib/fixedpoint/fixedpoint.make
-  endif
+ifeq (,$(findstring checkwps,$(APP_TYPE)))
+  include $(ROOTDIR)/lib/fixedpoint/fixedpoint.make
 endif
 
 ifneq (,$(findstring bootloader,$(APPSDIR)))
@@ -129,6 +127,14 @@ else # core
   include $(APPSDIR)/lang/lang.make
   include $(APPSDIR)/apps.make
   include $(ROOTDIR)/lib/rbcodec/rbcodec.make
+
+  # bootloaders don't get utf8proc
+  ifeq (,$(findstring checkwps,$(APP_TYPE)))
+    IS_GREATER := $(shell [ $(MEMORYSIZE) -gt 2 ] && echo true || echo false)
+    ifeq ($(IS_GREATER),true)
+      include $(ROOTDIR)/lib/utf8proc/utf8proc.make
+    endif
+  endif
 
   ifeq ($(ENABLEDPLUGINS),yes)
     include $(APPSDIR)/plugins/bitmaps/pluginbitmaps.make
@@ -234,7 +240,8 @@ clean::
 		$(LINKRAM) $(LINKROM) rockbox.elf rockbox.map rockbox.bin \
 		make.dep rombox.elf rombox.map rombox.bin romstart.txt \
 		$(BINARY) $(FLASHFILE) uisimulator bootloader flash $(BOOTLINK) \
-		rockbox.apk lang_enum.h rbversion.h fontbundle.h
+		rockbox.apk lang_enum.h rbversion.h fontbundle.h 3ds rockbox.3dsx \
+		rockbox.bnr rockbox.cia rockbox.icn rockbox.smdh
 
 #### linking the binaries: ####
 

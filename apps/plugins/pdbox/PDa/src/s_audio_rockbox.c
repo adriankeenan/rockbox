@@ -65,6 +65,9 @@ void rockbox_open_audio(int rate)
     /* Set sample rate of the audio buffer. */
     rb->mixer_set_frequency(rate);
 
+    /* Be sure channel is audible */
+    rb->pcmbuf_fade(false, true);
+
     /* Initialize output buffer. */
     for(i = 0; i < OUTBUFSIZE; i++)
         outbuf[i].fill = 0;
@@ -77,6 +80,9 @@ void rockbox_open_audio(int rate)
 /* Close audio. */
 void rockbox_close_audio(void)
 {
+    /* Mute channel */
+    rb->pcmbuf_fade(false, false);
+
     /* Stop playback. */
     rb->mixer_channel_stop(PCM_MIXER_CHAN_PLAYBACK);
 
@@ -181,7 +187,10 @@ int rockbox_send_dacs(void)
     if(!playing && outbuf_fill > 0)
     {
         /* Start playing. */
-        rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, pdbox_get_more, NULL, 0);
+        static const struct mixer_play_cbs cbs = {
+            .get_more = pdbox_get_more,
+        };
+        rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, &cbs, NULL, 0);
 
         /* Set status flag. */
         playing = true;

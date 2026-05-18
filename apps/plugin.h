@@ -45,6 +45,8 @@
 #undef strcmp
 #undef strncmp
 #undef strchr
+#undef strstr
+#undef strrchr
 #undef strtok_r
 #ifdef __APPLE__
 #undef strncpy
@@ -60,7 +62,6 @@
 
 #define splash(__ticks, __str) splashf(__ticks, __str)
 
-char* strncpy(char *, const char *, size_t);
 void* plugin_get_buffer(size_t *buffer_size);
 size_t plugin_reserve_buffer(size_t buffer_size);
 int plugin_open(const char *plugin, const char *parameter);
@@ -179,7 +180,7 @@ int plugin_open(const char *plugin, const char *parameter);
  * when this happens please take the opportunity to sort in
  * any new functions "waiting" at the end of the list.
  */
-#define PLUGIN_API_VERSION 281
+#define PLUGIN_API_VERSION 282
 
 /* 239 Marks the removal of ARCHOS HWCODEC and CHARCELL */
 
@@ -741,7 +742,6 @@ struct plugin_api {
     int32_t (*sound_get_pitch)(void);
     void (*sound_set_pitch)(int32_t pitch);
 #endif
-    const unsigned long *hw_freq_sampr;
     void (*pcm_play_lock)(void);
     void (*pcm_play_unlock)(void);
     const struct pcm_sink_caps* (*pcm_current_sink_caps)(void);
@@ -783,7 +783,7 @@ struct plugin_api {
     void (*mixer_channel_calculate_peaks)(enum pcm_mixer_channel channel,
                                           struct pcm_peaks *peaks);
     void (*mixer_channel_play_data)(enum pcm_mixer_channel channel,
-                                    pcm_play_callback_type get_more,
+                                    const struct mixer_play_cbs* cbs,
                                     const void *start, size_t size);
     void (*mixer_channel_play_pause)(enum pcm_mixer_channel channel, bool play);
     void (*mixer_channel_stop)(enum pcm_mixer_channel channel);
@@ -791,7 +791,7 @@ struct plugin_api {
                                         unsigned int amplitude);
     size_t (*mixer_channel_get_bytes_waiting)(enum pcm_mixer_channel channel);
     void (*mixer_channel_set_buffer_hook)(enum pcm_mixer_channel channel,
-                                          chan_buffer_hook_fn_type fn);
+                                          const struct mixer_buffer_cbs* cbs);
     void (*mixer_set_frequency)(unsigned int samplerate);
     unsigned int (*mixer_get_frequency)(void);
     void (*pcmbuf_fade)(bool fade, bool in);
@@ -1025,6 +1025,19 @@ struct plugin_api {
 
     /* new stuff at the end, sort into place next time
        the API gets incompatible */
+    void (*panicf)(const char *msg, ...);
+    void (*gui_synclist_scroll_stop)(struct gui_synclist *lists);
+    bool (*add_event_ex)(unsigned short id, bool oneshot,
+                         void (*handler)(unsigned short id,
+                                         void *event_data,
+                                         void *user_data),
+                         void *user_data);
+    void (*remove_event_ex)(unsigned short id,
+                            void (*handler)(unsigned short id,
+                                            void *event_data,
+                                            void *user_data),
+                            void *user_data);
+    char* (*strncpy)(char * dst, const char * src, size_t count);
 };
 
 /* plugin header */

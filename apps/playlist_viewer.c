@@ -52,6 +52,10 @@
 #include "yesno.h"
 #include "playback.h"
 
+#if defined (HAVE_TAGCACHE) && defined(HAVE_TC_RAMCACHE) && defined(HAVE_DIRCACHE)
+#include "tagcache.h"
+#endif
+
 /* Maximum number of tracks we can have loaded at one time                   */
 #define MAX_PLAYLIST_ENTRIES 200
 
@@ -124,6 +128,8 @@ struct playlist_viewer {
     struct playlist_buffer buffer;
     struct mp3entry *id3;
     bool allow_view_text_plugin;
+    unsigned long loading_tick;
+    bool is_open;
 };
 
 struct playlist_search_data
@@ -214,6 +220,13 @@ static void playlist_buffer_load_entries(struct playlist_buffer *pb, int index,
 
     for (i = 0; i < num_entries; i++)
     {
+        /* provide UI feedback if opening Playlist Viewer is taking too long */
+        if (!viewer.is_open && TIME_AFTER(current_tick, viewer.loading_tick))
+        {
+            viewer.loading_tick += HZ*10;
+            splash(0, ID2P(LANG_WAIT));
+        }
+
         int len = playlist_entry_load(&(pb->tracks[i]), index, p, remaining);
         if (len < 0)
         {
@@ -276,9 +289,15 @@ static bool retrieve_id3_tags(const int index, const char* name, struct mp3entry
         copy_mp3entry(id3, audio_current_track()); /* retrieve id3 from RAM */
         id3_retrieval_successful = true;
     }
-    else
+#if defined (HAVE_TAGCACHE) && defined(HAVE_TC_RAMCACHE) && defined(HAVE_DIRCACHE)
+    else if (flags & METADATA_EXCLUDE_ID3_PATH)
+        /* retrieve id3 from database */
+        id3_retrieval_successful = tagcache_fill_tags(id3, name);
+#endif
+
+    if (!id3_retrieval_successful)
     {
-    /* Read from disk, the database, doesn't store frequency, file size or codec (g4470) ChrisS*/
+        /* Read from disk: retrieves frequency, file size, and codec */
         id3_retrieval_successful = get_metadata_ex(id3, -1, name, flags);
     }
     return id3_retrieval_successful;
@@ -497,7 +516,7 @@ static void format_name(char* dest, const char* src, size_t bufsz)
         default:
         {
             /* Only display the filename */
-            char* p = strrchr(src, '/');
+            const char* p = strrchr(src, '/');
             strlcpy(dest, p+1, bufsz);
             /* Remove the extension */
             strrsplt(dest, '.');
@@ -515,9 +534,15 @@ static void format_line(struct playlist_entry* track, char* str,
                         int len)
 {
     char *id3viewc = NULL;
-    char *skipped = "";
+    char *skipped, *prefix, *suffix;
+    skipped = prefix = suffix = "";
     if (track->attr & PLAYLIST_ATTR_SKIPPED)
         skipped = "(ERR) ";
+    if (track->index == viewer.current_playing_track)
+    {
+        prefix = "[";
+        suffix = "]";
+    }
     if (!(track->attr & PLAYLIST_ATTR_RETRIEVE_ID3_ATTEMPTED) &&
         (global_settings.playlist_viewer_track_display ==
             PLAYLIST_VIEWER_ENTRY_SHOW_ID3_TITLE_AND_ALBUM ||
@@ -591,9 +616,10 @@ static void format_line(struct playlist_entry* track, char* str,
         format_name(name, track->name, sizeof(name));
         if (global_settings.playlist_viewer_indices)
             /* Display playlist index */
-            snprintf(str, len, "%d. %s%s", track->display_index, skipped, name);
+            snprintf(str, len, "%s%d. %s%s%s",
+                     prefix, track->display_index, skipped, name, suffix);
         else
-            snprintf(str, len, "%s%s", skipped, name);
+            snprintf(str, len, "%s%s%s%s", prefix, skipped, name, suffix);
     }
     else
     {
@@ -603,9 +629,10 @@ static void format_line(struct playlist_entry* track, char* str,
         }
         if (global_settings.playlist_viewer_indices)
             /* Display playlist index */
-            snprintf(str, len, "%d. %s%s", track->display_index, skipped, id3viewc);
+            snprintf(str, len, "%s%d. %s%s%s",
+                     prefix, track->display_index, skipped, id3viewc, suffix);
         else
-            snprintf(str, len, "%s%s", skipped, id3viewc);
+            snprintf(str, len, "%s%s%s%s", prefix, skipped, id3viewc, suffix);
     }
 }
 
@@ -655,6 +682,7 @@ static void close_playlist_viewer(void)
         }
         playlist_close(viewer.playlist);
     }
+    viewer.is_open = false;
 }
 
 #if defined(HAVE_HOTKEY) || defined(HAVE_TAGCACHE)
@@ -952,9 +980,12 @@ static bool open_playlist_viewer(const char* filename,
                                   struct gui_synclist *playlist_lists,
                                   bool reload, int *most_recent_selection)
 {
+    viewer.loading_tick = current_tick + HZ/3;
     push_current_activity(ACTIVITY_PLAYLISTVIEWER);
 
-    if (!playlist_viewer_init(&viewer, filename, reload, most_recent_selection))
+    if (playlist_viewer_init(&viewer, filename, reload, most_recent_selection))
+        viewer.is_open = true;
+    else
         return false;
 
     update_gui(playlist_lists, true);
@@ -1260,7 +1291,7 @@ bool search_playlist(void)
     struct gui_synclist playlist_lists;
     struct playlist_track_info track;
 
-    if (!playlist_viewer_init(&viewer, 0, false, NULL))
+    if (!playlist_viewer_init(&viewer, NULL, false, NULL))
         return ret;
     if (kbd_input(search_str, sizeof(search_str), NULL) < 0)
         return ret;

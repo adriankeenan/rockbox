@@ -897,6 +897,26 @@ static bool onplay_load_plugin(void *param)
     return false;
 }
 
+static int reveal(void)
+{
+#ifdef HAVE_TAGCACHE
+    if (!prepare_database_sel(NULL))
+        return 0;
+#endif
+    if (!file_exists(selected_file.path))
+    {
+        splash(HZ*2, ID2P(LANG_FILE_NOT_FOUND));
+        return 0;
+    }
+
+    strmemccpy(global_status.browse_last_folder, selected_file.path,
+               sizeof global_status.browse_last_folder);
+    onplay_result = ONPLAY_REVEAL_FILE;
+    return 0;
+}
+
+MENUITEM_FUNCTION(reveal_item, 0, ID2P(LANG_SHOW_IN_FILES),
+                  reveal, clipboard_callback, Icon_file_view_menu);
 MENUITEM_FUNCTION(list_viewers_item, 0, ID2P(LANG_ONPLAY_OPEN_WITH),
                   list_viewers, clipboard_callback, Icon_NOICON);
 MENUITEM_FUNCTION_W_PARAM(properties_item, 0, ID2P(LANG_PROPERTIES),
@@ -1033,7 +1053,8 @@ static int clipboard_callback(int action,
             if (selected_file.context == CONTEXT_ID3DB)
             {
                 if (this_item == &track_info_item ||
-                    this_item == &pictureflow_item)
+                    this_item == &pictureflow_item ||
+                    this_item == &reveal_item)
                     return action;
                 return ACTION_EXIT_MENUITEM;
             }
@@ -1088,7 +1109,9 @@ static int clipboard_callback(int action,
                     if (*tree_get_context()->dirfilter != SHOW_M3U)
                         return action;
                 }
-                else if (this_item == &delete_file_item)
+                else if (this_item == &delete_file_item ||
+                         (this_item == &reveal_item &&
+                          selected_file.context == CONTEXT_WPS))
                     return action;
 #if LCD_DEPTH > 1
                 else if (this_item == &set_backdrop_item)
@@ -1124,8 +1147,8 @@ MAKE_ONPLAYMENU( wps_onplay_menu, ID2P(LANG_ONPLAY_MENU_TITLE),
 #endif
            &bookmark_menu,
            &plugin_item,
-           &browse_id3_item, &list_viewers_item,
-           &delete_file_item, &view_cue_item,
+           &browse_id3_item,
+           &reveal_item, &view_cue_item,
 #ifdef HAVE_PITCHCONTROL
            &pitch_menu,
 #endif
@@ -1162,6 +1185,7 @@ MAKE_ONPLAYMENU( tree_onplay_menu, ID2P(LANG_ONPLAY_MENU_TITLE),
            &rename_file_item, &clipboard_cut_item, &clipboard_copy_item,
            &clipboard_paste_item, &delete_file_item, &delete_dir_item,
            &list_viewers_item, &create_dir_item, &properties_item, &track_info_item,
+           &reveal_item,
 #ifdef HAVE_TAGCACHE
            &pictureflow_item,
 #endif
@@ -1263,6 +1287,7 @@ static int hotkey_tree_run_plugin(void *param)
     return ONPLAY_RELOAD_DIR;
 }
 
+static int hotkey_run_menu(void); /* display hotkey items as a menu */
 static int hotkey_wps_run_plugin(void)
 {
     open_plugin_run(ID2P(LANG_HOTKEY_WPS));
@@ -1273,6 +1298,7 @@ static int hotkey_wps_run_plugin(void)
 /* Any desired hotkey functions go here, in the enum in onplay.h,
    and in the settings menu in settings_list.c.  The order here
    is not important. */
+
 static const struct hotkey_assignment hotkey_items[] = {
  [0]{ .action = HOTKEY_OFF,
       .lang_id = LANG_OFF,
@@ -1336,6 +1362,18 @@ static const struct hotkey_assignment hotkey_items[] = {
       .func = HOTKEY_FUNC(hotkey_tree_run_plugin, (void *)"properties"),
       .return_code = ONPLAY_FUNC_RETURN,
       .flags = HOTKEY_FLAG_TREE },
+    { .action = HOTKEY_CONTEXT_MENU,
+      .lang_id = LANG_ONPLAY_MENU_TITLE,
+      .func = HOTKEY_FUNC(hotkey_run_menu, NULL),
+      .return_code = ONPLAY_FUNC_RETURN,
+      .flags = HOTKEY_FLAG_WPS | HOTKEY_FLAG_TREE },
+#ifdef HAVE_ALBUMART
+    { .action = HOTKEY_ALBUMART,
+      .lang_id = LANG_VIEW_ALBUMART,
+      .func = HOTKEY_FUNC(view_album_art, NULL),
+      .return_code = ONPLAY_OK,
+      .flags = HOTKEY_FLAG_WPS | HOTKEY_FLAG_NOSBS },
+#endif
 #ifdef HAVE_TAGCACHE
     { .action = HOTKEY_PICTUREFLOW,
       .lang_id = LANG_ONPLAY_PICTUREFLOW,
@@ -1356,11 +1394,8 @@ const struct hotkey_assignment *get_hotkey(int action)
 }
 
 /* Execute the hotkey function, if listed */
-static int execute_hotkey(bool is_wps)
+static int execute_hotkey(int action)
 {
-    const int action = (is_wps ? global_settings.hotkey_wps :
-                                 global_settings.hotkey_tree);
-
     /* search assignment struct for a match for the hotkey setting */
     const struct hotkey_assignment *this_item = get_hotkey(action);
 
@@ -1380,6 +1415,60 @@ static int execute_hotkey(bool is_wps)
     if (return_code == ONPLAY_FUNC_RETURN)
         return func_return;  /* Use value returned by function */
     return return_code;      /* or return the associated value */
+}
+
+static const char* hotkey_get_name(int selected_item, void * data,
+                                     char * buffer, size_t buffer_len)
+{
+    (void)buffer; (void)buffer_len;
+    const struct hotkey_assignment **hk_menu = (const struct hotkey_assignment **)data;
+    return ID2P(hk_menu[selected_item + 1]->lang_id);  /* +1 to skip HOTKEY_OFF */
+}
+
+static int hotkey_get_talk(int selected_item, void * data)
+{
+    if (global_settings.talk_menu)
+    {
+        const struct hotkey_assignment **hk_menu = (const struct hotkey_assignment **)data;
+        talk_id(hk_menu[selected_item + 1]->lang_id, false); /* +1 to skip HOTKEY_OFF */
+    }
+    return 0;
+}
+
+static int hotkey_run_menu(void)
+{
+    intptr_t flag = HOTKEY_FLAG_WPS;
+    if (selected_file.context != CONTEXT_WPS)
+        flag = HOTKEY_FLAG_TREE;
+
+    const struct hotkey_assignment *hk_menu[ARRAYLEN(hotkey_items)];
+
+    struct simplelist_info info;
+    int count = 0;
+    for (size_t i = 0; i < ARRAYLEN(hotkey_items); i++)
+    {
+        hk_menu[i] = NULL; /*clear all the hk_menu entries prior to setting them */
+        if ((hotkey_items[i].flags & flag) == flag)
+        {
+            if (hotkey_items[i].action != HOTKEY_CONTEXT_MENU)
+            {
+                hk_menu[count++] = &hotkey_items[i];
+            }
+        }
+    }
+
+    /* count -1 don't display HOTKEY_OFF item */
+    simplelist_info_init(&info, str(LANG_ONPLAY_MENU_TITLE), count - 1, (void*)&hk_menu);
+    info.get_name = hotkey_get_name;
+    info.get_icon = NULL;
+    info.get_talk = hotkey_get_talk;
+
+    simplelist_show_list(&info);
+    if (info.selection >= 0) /* run user selected hotkey item */
+    {
+        return execute_hotkey(hk_menu[info.selection + 1]->action);
+    }
+    return ONPLAY_RELOAD_DIR;
 }
 #endif /* HOTKEY */
 
@@ -1417,7 +1506,8 @@ int onplay(char* file, int attr, int from_context, bool hotkey, int customaction
 
 #ifdef HAVE_HOTKEY
     if (hotkey)
-        return execute_hotkey(from_context == CONTEXT_WPS);
+        return execute_hotkey((from_context == CONTEXT_WPS ?
+                         global_settings.hotkey_wps : global_settings.hotkey_tree));
 #else
     (void)hotkey;
 #endif

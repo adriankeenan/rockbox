@@ -5,9 +5,8 @@
  *   Jukebox    |    |   (  <_> )  \___|    < | \_\ (  <_> > <  <
  *   Firmware   |____|_  /\____/ \___  >__|_ \|___  /\____/__/\_ \
  *                     \/            \/     \/    \/            \/
- * $Id$
  *
- * Copyright (C) 2025 by Aidan MacDonald
+ * Copyright (C) 2025 by Sho Tanimoto
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,8 +17,26 @@
  * KIND, either express or implied.
  *
  ****************************************************************************/
-#include "adc.h"
+#pragma once
 
-void adc_init(void)
-{
-}
+/* debug switches */
+#define DEBUG_ENABLE_INFO     0
+#define DEBUG_ENABLE_ERROR    1
+#define DEBUG_LCD_PRINT       0
+#define DEBUG_DUMP_TX         0
+#define DEBUG_DUMP_RX         0
+#define DEBUG_HEXDUMP_NOLIMIT 0
+
+#if DEBUG_ENABLE_INFO == 1 || DEBUG_ENABLE_ERROR == 1
+#define LOGF_ENABLE
+#include "logf.h"
+#endif
+
+void          iap_lcd_scatter(const char* fmt, ...);
+unsigned long iap_debug_timestamp(void);
+void          iap_debug_reset_timestamp(void);
+
+#if DEBUG_LCD_PRINT == 1
+#undef logf
+#define logf(...) iap_lcd_scatter(__VA_ARGS__)
+#endif

@@ -215,6 +215,7 @@ static Uint8 *ROCKBOXAUD_GetAudioBuf(_THIS)
 
 static void ROCKBOXAUD_CloseAudio(_THIS)
 {
+    rb->pcmbuf_fade(false, false); /* Mute channel */
     rb->mixer_channel_stop(PCM_MIXER_CHAN_PLAYBACK);
     if ( this->hidden->mixbuf != NULL ) {
         SDL_FreeAudioMem(this->hidden->mixbuf);
@@ -260,6 +261,7 @@ static int ROCKBOXAUD_OpenAudio(_THIS, SDL_AudioSpec *spec)
 
     LOGF("samplerate %d", spec->freq);
     rb->mixer_set_frequency(spec->freq);
+    rb->pcmbuf_fade(false, true); /* Be sure channel is audible */
 
     /* Allocate mixing buffer */
     this->hidden->mixlen = spec->size;
@@ -288,7 +290,10 @@ static int ROCKBOXAUD_OpenAudio(_THIS, SDL_AudioSpec *spec)
 
     rbaud_underruns = 0;
 
-    rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, get_more, NULL, 0);
+    static const struct mixer_play_cbs cbs = {
+        .get_more = get_more,
+    };
+    rb->mixer_channel_play_data(PCM_MIXER_CHAN_PLAYBACK, &cbs, NULL, 0);
 
     /* We're ready to rock and roll. :-) */
     return(0);
