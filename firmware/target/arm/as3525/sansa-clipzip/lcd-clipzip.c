@@ -29,6 +29,10 @@
 /* the detected lcd type (0 or 1) */
 static int lcd_type;
 
+/* set by lcd_set_flip(): when true the panel is rotated 180 degrees via the
+   controller's GRAM write direction (see lcd_set_flip and lcd_setup_rect) */
+static bool lcd_flipped = false;
+
 #ifdef HAVE_LCD_ENABLE
 /* whether the lcd is currently enabled or not */
 static bool lcd_enabled;
@@ -196,65 +200,67 @@ static void lcd_init_type1(void)
     };
     int i;
 
-    lcd_write(0x02, 0x00);
+    lcd_write(0x02, 0x00); /* DDISP OFF */
 
-    lcd_write_cmd(0x01);
+    lcd_write_cmd(0x01);  /* SOFTRESET */
 
-    lcd_write(0x03, 0x00);
+    lcd_write(0x03, 0x00); /* DSTBY ON */
 
-    lcd_write(0x04, 0x03);
+    lcd_write(0x04, 0x02); /* Set OSC Control 2 = 90Hz*/
 
-    lcd_write(0x05, 0x00);    /* 0x08 results in BGR colour */
+    lcd_write(0x05, 0x00); /* Write Direction 0x08 results in BGR colour */
 
-    lcd_write(0x06, 0x00);
+    lcd_write(0x06, 0x00); /* Set Row Scan Direction */
 
-    lcd_write(0x07, 0x00);
+    lcd_write(0x07, 0x00); /* Set Display Size */
     lcd_write_dat_word(0x00, 0x04);
     lcd_write_dat_word(0x1F, 0x00);
     lcd_write_dat_word(0x00, 0x05);
     lcd_write_dat(0x0F);
 
-    lcd_write(0x08, 0x01);
+    lcd_write(0x08, 0x01); /* Set Interface Bus Type 1 = 8-bit*/
 
-    lcd_write(0x09, 0x07);
+    lcd_write(0x09, 0x07); /* Set Masking Data */
 
-    lcd_write_cmd(0x0A);
+    lcd_write_cmd(0x0A); /* Set Read/Write Box Data */
     lcd_write_nibbles(0);
     lcd_write_nibbles(LCD_WIDTH - 1);
     lcd_write_nibbles(0);
     lcd_write_nibbles(LCD_HEIGHT - 1);
 
-    lcd_write(0x0B, 0x00);
+    lcd_write(0x0B, 0x00); /* Set Display Start Address */
     lcd_write_dat_word(0x00, 0x00);
     lcd_write_dat(0x00);
 
-    lcd_write_cmd(0x0E);
+    lcd_write_cmd(0x0E); /* Set Dot Matrix Current Level */
     lcd_write_nibbles(0x42);
     lcd_write_nibbles(0x25);
     lcd_write_nibbles(0x3F);
 
-    lcd_write(0x0F, 0x0A);
+    lcd_write(0x0F, 0x0A); /* Set Dot Matrix Peak Current Level */
     lcd_write_dat_word(0x0A, 0x0A);
 
-    lcd_write(0x1C, 0x08);
+    lcd_write(0x1C, 0x08); /* Set Pre-Charge Width */
 
-    lcd_write(0x1D, 0x00);
+    lcd_write(0x1D, 0x00); /* Set Peak Pulse Width */
     lcd_write_dat_word(0x00, 0x00);
 
-    lcd_write(0x1E, 0x05);
+    lcd_write(0x1E, 0x05); /* Set Peak Pulse Delay */
 
-    lcd_write(0x1F, 0x00);
+    lcd_write(0x1F, 0x00); /* Set Row Scan Operation 0=Mode 1 : Default scan mode */
 
-    lcd_write(0x30, 0x10);
+    lcd_write(0x30, 0x10); /* Set Internal Regulator for Row Scan*/
 
-    lcd_write_cmd(0x3A);
+    lcd_write_cmd(0x3A); /* Set Gamma Correction Table */
     for (i = 0; i < 128; i++) {
         lcd_write_nibbles(curve[i]);
     }
 
-    lcd_write(0x3C, 0x00);
+    lcd_write_cmd(0x3B); /* Set Gamma Correction Table Initialize */
 
-    lcd_write(0x3D, 0x00);
+    lcd_write(0x3C, 0x00); /* Set VDD Selection */
+
+    lcd_write(0x3D, 0x00); /* DMODE 0= 65K Color */
 }
 
 #ifdef HAVE_LCD_ENABLE
@@ -274,6 +280,10 @@ void lcd_enable(bool on)
             sleep(HZ * 100/1000);
 
             lcd_write(0xD0, 0x00);  /* SCREEN_SAVER_CONTROL */
+
+            /* apply 180 degree flip via memory write direction (1Dh):
+               MDIR1|MDIR0 = decrement both; normal is horizontal-decrement */
+            lcd_write(0x1D, lcd_flipped ? 0x02 : 0x01);
         }
         else {
             lcd_write(0xD2, 0x05);
@@ -290,14 +300,20 @@ void lcd_enable(bool on)
             lcd_write(0x03, 0x00);
 
             lcd_write(0x02, 0x01);
+
+            /* apply 180 degree flip via graphic RAM writing direction (05h):
+               D[2:0] = 011 starts from XE,YE (both axes reversed) */
+            lcd_write(0x05, lcd_flipped ? 0x03 : 0x00);
         }
         else {
             lcd_write(0x02, 0x00);
 
             lcd_write(0x03, 0x01);
+
+            lcd_write(0x14, 0x01); /* DSTBY ON */
         }
     }
-    
+
     lcd_enabled = on;
 }
 
@@ -324,6 +340,18 @@ void lcd_init_device(void)
 /* sets up the lcd to receive frame buffer data */
 static void lcd_setup_rect(int x, int x_end, int y, int y_end)
 {
+    if (lcd_flipped) {
+        /* Mirror the window to the opposite corner; the reversed write
+           direction set in lcd_enable() fills it back-to-front, drawing the
+           framebuffer rotated 180 degrees with no per-pixel work. */
+        int fx = LCD_WIDTH  - 1 - x_end;
+        int fy = LCD_HEIGHT - 1 - y_end;
+        x_end  = LCD_WIDTH  - 1 - x;
+        y_end  = LCD_HEIGHT - 1 - y;
+        x = fx;
+        y = fy;
+    }
+
     if (lcd_type == 0) {
         lcd_write(0x34, x);     /* MEM_X1 */
         lcd_write(0x35, x_end); /* MEM_X2 */
@@ -333,13 +361,13 @@ static void lcd_setup_rect(int x, int x_end, int y, int y_end)
         lcd_write_cmd(0x08);    /* DDRAM_DATA_ACCESS_PORT */
     }
     else {
-        lcd_write_cmd(0x0A);
+        lcd_write_cmd(0x0A); /* Set Read/Write Box Data */
         lcd_write_nibbles(x);
         lcd_write_nibbles(x_end);
         lcd_write_nibbles(y);
         lcd_write_nibbles(y_end);
         
-        lcd_write_cmd(0x0C);
+        lcd_write_cmd(0x0C); /* Read/Write Display Data */
     }
 }
 
@@ -362,7 +390,7 @@ void oled_brightness(int brightness)
         g = 1 + 6*brightness;
         b = 3 + 10*brightness;
     
-        lcd_write_cmd(0x0E);
+        lcd_write_cmd(0x0E); /* Set Dot Matrix Current Level */
         lcd_write_nibbles(r);
         lcd_write_nibbles(g);
         lcd_write_nibbles(b);
@@ -380,6 +408,23 @@ void lcd_write_data(const fb_data *data, int count)
     }
 }
 
+/* Rotate the display 180 degrees (the flip_display setting). Both panel
+   controllers do this in hardware by reversing the GRAM write direction (set in
+   lcd_enable) so the address counter walks the framebuffer backwards;
+   lcd_setup_rect mirrors the write window to match. Cycle the panel off/on here
+   so a change (e.g. toggled from the menu) takes effect immediately. */
+void lcd_set_flip(bool yesno)
+{
+    if (yesno == lcd_flipped)
+        return;
+    lcd_flipped = yesno;
+
+    if (lcd_enabled) {
+        lcd_enable(false);
+        lcd_enable(true);
+    }
+}
+
 /* Updates a fraction of the display. */
 void lcd_update_rect(int x, int y, int width, int height)
 {
@@ -392,7 +437,7 @@ void lcd_update_rect(int x, int y, int width, int height)
         /* rectangle is outside visible display, do nothing */
         return;
     }
-    
+
     /* update entire horizontal strip for display type 0 (wisechip) */
     if (lcd_type == 0) {
         x = 0;
