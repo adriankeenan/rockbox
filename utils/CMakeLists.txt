@@ -67,6 +67,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     find_package(PkgConfig)
     pkg_check_modules(libusb QUIET REQUIRED IMPORTED_TARGET libusb-1.0)
     message("-- Found libusb: ${libusb_LINK_LIBRARIES}")
+    add_compile_definitions(USE_LIBUSBAPI)
 
     # optional system libs.
     pkg_check_modules(speex QUIET IMPORTED_TARGET speex speexdsp)
@@ -91,7 +92,7 @@ if(QuaZip-Qt${QT_VERSION_MAJOR}_FOUND)
     message("-- Found QuaZip")
     set(QUAZIP_LIBRARY QuaZip::QuaZip)
 else()
-    message("-- Could not find system QuaZip, uisng our own copy.")
+    message("-- Could not find system QuaZip, using our own copy.")
     # TODO: Upstream has cmake support, use that instead.
     add_library(quazip
         ${CMAKE_CURRENT_LIST_DIR}/rbutilqt/quazip/ioapi.h
