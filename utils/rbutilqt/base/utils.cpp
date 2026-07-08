@@ -30,6 +30,8 @@
 #include <QtCore>
 #include <QDebug>
 #include <QStorageInfo>
+#include <QStandardPaths>
+#include <QDirIterator>
 #include <cstdlib>
 #include <stdio.h>
 
@@ -133,45 +135,12 @@ QString Utils::resolvePathCase(QString path)
 
 QString Utils::filesystemType(QString path)
 {
-#if defined(Q_OS_LINUX)
-    FILE *mn = setmntent("/etc/mtab", "r");
-    if(!mn)
-        return QString("");
-
-    struct mntent *ent;
-    while((ent = getmntent(mn))) {
-        if(QString(ent->mnt_dir) == path) {
-            endmntent(mn);
-            LOG_INFO() << "device type is" << ent->mnt_type;
-            return QString(ent->mnt_type);
-        }
+    QStorageInfo storage(path);
+    if (storage.isValid()) {
+        QString fsType = QString::fromLocal8Bit(storage.fileSystemType());
+        LOG_INFO() << "device type is" << fsType;
+        return fsType;
     }
-    endmntent(mn);
-#endif
-
-#if defined(Q_OS_MACOS) || defined(Q_OS_OPENBSD)
-    int num;
-    struct statfs *mntinf;
-
-    num = getmntinfo(&mntinf, MNT_WAIT);
-    while(num--) {
-        if(QString(mntinf->f_mntonname) == path) {
-            LOG_INFO() << "device type is" << mntinf->f_fstypename;
-            return QString(mntinf->f_fstypename);
-        }
-        mntinf++;
-    }
-#endif
-
-#if defined(Q_OS_WIN32)
-    wchar_t t[64];
-    memset(t, 0, 32);
-    if(GetVolumeInformationW((LPCWSTR)path.utf16(),
-                             NULL, 0, NULL, NULL, NULL, t, 64)) {
-        LOG_INFO() << "device type is" << t;
-        return QString::fromWCharArray(t);
-    }
-#endif
     return QString("-");
 }
 
@@ -189,7 +158,12 @@ QString Utils::filesystemName(const QString &path)
 //! @return size in bytes
 qulonglong Utils::filesystemFree(QString path)
 {
-    qulonglong size = filesystemSize(path, FilesystemFree);
+    QStorageInfo storage(path);
+    if (!storage.isValid()) {
+        return 0;
+    }
+
+    qulonglong size = storage.bytesAvailable();
     LOG_INFO() << "free disk space for" << path << size;
     return size;
 }
@@ -197,59 +171,33 @@ qulonglong Utils::filesystemFree(QString path)
 
 qulonglong Utils::filesystemTotal(QString path)
 {
-    qulonglong size = filesystemSize(path, FilesystemTotal);
+    QStorageInfo storage(path);
+    if (!storage.isValid()) {
+        return 0;
+    }
+
+    qulonglong size = storage.bytesTotal();
     LOG_INFO() << "total disk space for" << path << size;
     return size;
 }
 
 
-qulonglong Utils::filesystemSize(QString path, enum Utils::Size type)
+qulonglong Utils::filesystemClusterSize(QString path)
 {
     qulonglong size = 0;
 #if defined(Q_OS_LINUX) || defined(Q_OS_MACOS)
-    // the usage of statfs() is deprecated by the LSB so use statvfs().
     struct statvfs fs;
-    int ret;
-
-    ret = statvfs(qPrintable(path), &fs);
-
-    if(ret == 0) {
-        if(type == FilesystemFree) {
-            size = (qulonglong)fs.f_frsize * (qulonglong)fs.f_bavail;
-        }
-        if(type == FilesystemTotal) {
-            size = (qulonglong)fs.f_frsize * (qulonglong)fs.f_blocks;
-        }
-        if(type == FilesystemClusterSize) {
-            size = (qulonglong)fs.f_frsize;
-        }
+    if (statvfs(qPrintable(path), &fs) == 0) {
+        size = (qulonglong)fs.f_frsize;
     }
-#endif
-#if defined(Q_OS_WIN32)
-    BOOL ret;
-    ULARGE_INTEGER freeAvailBytes;
-    ULARGE_INTEGER totalNumberBytes;
+#elif defined(Q_OS_WIN32)
+    DWORD sectorsPerCluster;
+    DWORD bytesPerSector;
+    DWORD dummy;
 
-    ret = GetDiskFreeSpaceExW((LPCTSTR)path.utf16(), &freeAvailBytes,
-            &totalNumberBytes, NULL);
-    if(ret) {
-        if(type == FilesystemFree) {
-            size = freeAvailBytes.QuadPart;
-        }
-        if(type == FilesystemTotal) {
-            size = totalNumberBytes.QuadPart;
-        }
-        if(type == FilesystemClusterSize) {
-            DWORD sectorsPerCluster;
-            DWORD bytesPerSector;
-            DWORD freeClusters;
-            DWORD totalClusters;
-            ret = GetDiskFreeSpaceW((LPCTSTR)path.utf16(), &sectorsPerCluster,
-                    &bytesPerSector, &freeClusters, &totalClusters);
-            if(ret) {
-                size = bytesPerSector * sectorsPerCluster;
-            }
-        }
+    if (GetDiskFreeSpaceW((LPCWSTR)path.utf16(), &sectorsPerCluster,
+                          &bytesPerSector, &dummy, &dummy)) {
+        size = bytesPerSector * sectorsPerCluster;
     }
 #endif
     return size;
@@ -258,26 +206,10 @@ qulonglong Utils::filesystemSize(QString path, enum Utils::Size type)
 //! \brief searches for a Executable in the Environement Path
 QString Utils::findExecutable(QString name)
 {
-    //try autodetect tts
-#if defined(Q_OS_LINUX) || defined(Q_OS_MACOS) || defined(Q_OS_OPENBSD)
-    QStringList path = QString(getenv("PATH")).split(":", Qt::SkipEmptyParts);
-#elif defined(Q_OS_WIN)
-    QStringList path = QString(getenv("PATH")).split(";", Qt::SkipEmptyParts);
-#endif
-    LOG_INFO() << "system path:" << path;
-    for(int i = 0; i < path.size(); i++)
-    {
-        QString executable = QDir::fromNativeSeparators(path.at(i)) + "/" + name;
-#if defined(Q_OS_WIN)
-        executable += ".exe";
-        QStringList ex = executable.split("\"", Qt::SkipEmptyParts);
-        executable = ex.join("");
-#endif
-        if(QFileInfo(executable).isExecutable())
-        {
-            LOG_INFO() << "findExecutable: found" << executable;
-            return QDir::toNativeSeparators(executable);
-        }
+    QString executable = QStandardPaths::findExecutable(name);
+    if (!executable.isEmpty()) {
+        LOG_INFO() << "findExecutable: found" << executable;
+        return QDir::toNativeSeparators(executable);
     }
     LOG_INFO() << "findExecutable: could not find" << name;
     return "";
@@ -580,75 +512,36 @@ QString Utils::resolveMountPoint(QString device)
 QStringList Utils::mountpoints(enum MountpointsFilter type)
 {
     QStringList supported;
-    QStringList tempList;
+    QStringList paths;
+
+    // Note: QStorageInfo::fileSystemType() result is platform-dependant!
 #if defined(Q_OS_WIN32)
-    supported << "FAT32" << "FAT16" << "FAT12" << "FAT" << "HFS";
-    QFileInfoList list = QDir::drives();
-    for(int i=0; i<list.size();i++)
-    {
-        wchar_t t[32];
-        memset(t, 0, sizeof(t));
-        if(GetVolumeInformationW((LPCWSTR)list.at(i).absolutePath().utf16(),
-                NULL, 0, NULL, NULL, NULL, t, 32) == 0) {
-            // on error empty retrieved type -- don't rely on
-            // GetVolumeInformation not changing it.
-            memset(t, 0, sizeof(t));
-        }
-
-        QString fstype = QString::fromWCharArray(t);
-        if(type == MountpointsAll || supported.contains(fstype)) {
-            tempList << list.at(i).absolutePath();
-            LOG_INFO() << "Added:" << list.at(i).absolutePath()
-                     << "type" << fstype;
-        }
-        else {
-            LOG_INFO() << "Ignored:" << list.at(i).absolutePath()
-                     << "type" << fstype;
-        }
-    }
-
+    supported = {"FAT32", "FAT16", "FAT12", "FAT", "HFS"};
 #elif defined(Q_OS_MACOS) || defined(Q_OS_OPENBSD)
-    supported << "vfat" << "msdos" << "hfs";
-    int num;
-    struct statfs *mntinf;
-
-    num = getmntinfo(&mntinf, MNT_WAIT);
-    while(num--) {
-        if(type == MountpointsAll || supported.contains(mntinf->f_fstypename)) {
-            tempList << QString(mntinf->f_mntonname);
-            LOG_INFO() << "Added:" << mntinf->f_mntonname
-                     << "is" << mntinf->f_mntfromname << "type" << mntinf->f_fstypename;
-        }
-        else {
-            LOG_INFO() << "Ignored:" << mntinf->f_mntonname
-                     << "is" << mntinf->f_mntfromname << "type" << mntinf->f_fstypename;
-        }
-        mntinf++;
-    }
+    supported = {"vfat", "msdos", "hfs"}; // vfat might not be needed
 #elif defined(Q_OS_LINUX)
-    supported << "vfat" << "msdos" << "hfsplus";
-    FILE *mn = setmntent("/etc/mtab", "r");
-    if(!mn)
-        return QStringList("");
-
-    struct mntent *ent;
-    while((ent = getmntent(mn))) {
-        if(type == MountpointsAll || supported.contains(ent->mnt_type)) {
-            tempList << QString(ent->mnt_dir);
-            LOG_INFO() << "Added:" << ent->mnt_dir
-                     << "is" << ent->mnt_fsname << "type" << ent->mnt_type;
-        }
-        else {
-            LOG_INFO() << "Ignored:" << ent->mnt_dir
-                     << "is" << ent->mnt_fsname << "type" << ent->mnt_type;
-        }
-    }
-    endmntent(mn);
-
+    supported = {"vfat", "msdos", "hfsplus"}; // hfs might be needed, too
 #else
 #error Unknown Platform
 #endif
-    return tempList;
+
+    for (const QStorageInfo &storage : QStorageInfo::mountedVolumes()) {
+        if (!storage.isValid() || storage.isReadOnly()) {
+            continue;
+        }
+
+        QString fsType = QString::fromLocal8Bit(storage.fileSystemType());
+        QString rootPath = storage.rootPath();
+
+        if (type == MountpointsAll || supported.contains(fsType, Qt::CaseInsensitive)) {
+            paths << rootPath;
+            LOG_INFO() << "Added:" << rootPath << "type" << fsType;
+        } else {
+            LOG_INFO() << "Ignored:" << rootPath << "type" << fsType;
+        }
+    }
+
+    return paths;
 }
 
 
@@ -963,13 +856,10 @@ bool Utils::ejectDevice(const QString &device)
 qint64 Utils::recursiveFolderSize(QString path)
 {
     qint64 size = 0;
-    QList<QFileInfo> items = QDir(path).entryInfoList(QDir::Files | QDir::NoDotAndDotDot);
-    for (const auto &item: std::as_const(items)) {
-        size += item.size();
-    }
-    QList<QString> folders = QDir(path).entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-    for (auto const& folder: std::as_const(folders)) {
-        size += recursiveFolderSize(path + "/" + folder);
+    QDirIterator it(path, QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+    while (it.hasNext()) {
+        it.next();
+        size += it.fileInfo().size();
     }
     return size;
 }
