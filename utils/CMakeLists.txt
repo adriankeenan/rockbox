@@ -46,9 +46,9 @@ enable_testing()
 
 # Qt
 find_package(QT NAMES Qt6 REQUIRED)
-    find_package(Qt6 REQUIRED COMPONENTS
+    find_package(Qt6 6.6 REQUIRED COMPONENTS
                  Core Core5Compat Widgets Svg Network LinguistTools SvgWidgets
-                 OPTIONAL_COMPONENTS Multimedia Test)
+                 OPTIONAL_COMPONENTS Multimedia Test TextToSpeech)
 	       ## note Core5Compat is only needed for QuaZip
 get_target_property(_moc_executable Qt${QT_VERSION_MAJOR}::moc IMPORTED_LOCATION)
 get_filename_component(QT_BINDIR "${_moc_executable}" DIRECTORY)
@@ -56,7 +56,12 @@ message("-- Found Qt${QT_VERSION_MAJOR}: ${Qt${QT_VERSION_MAJOR}_DIR}")
 if (TARGET Qt${QT_VERSION_MAJOR}::Multimedia)
   message("-- Found Qt::Multimedia")
 else()
-  message("-- QT::Multimedia not found, TTS preview not available")
+  message("-- Could not find QT::Multimedia, TTS preview not available")
+endif()
+if (TARGET Qt${QT_VERSION_MAJOR}::TextToSpeech)
+  message("-- Found Qt::TextToSpeech")
+else()
+  message("-- Could not find QT::TextToSpeech, Qt TTS not available")
 endif()
 
 add_compile_definitions(QT_NO_USE_NODISCARD_FILE_OPEN)
@@ -345,7 +350,7 @@ target_include_directories(telechips PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../tools)
 
 find_library(LIBBZ2 bz2)
 if(${LIBBZ2} STREQUAL "LIBBZ2-NOTFOUND")
-    message("-- bz2 not found, building our own")
+    message("-- Could not find system libbz2, building our own")
     add_library(bz2
         bzip2/blocksort.c
         bzip2/bzlib.c
