@@ -258,6 +258,12 @@ struct battery_tables_t {
 #define BATTERY_ON_TXT  "A"
 #define BATTERY_OFF_TXT "X"
 
+#elif CONFIG_KEYPAD == RG35XX_PRO_PAD
+#define BATTERY_ON  BUTTON_A
+#define BATTERY_OFF BUTTON_X
+#define BATTERY_ON_TXT  "A"
+#define BATTERY_OFF_TXT "X"
+
 #elif CONFIG_KEYPAD == CTRU_PAD
 #define BATTERY_ON      BUTTON_SELECT
 #define BATTERY_OFF     BUTTON_BACK

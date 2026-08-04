@@ -300,6 +300,8 @@ keymaps/keymap-echor1.c
 keymaps/keymap-surfansf28.c
 #elif CONFIG_KEYPAD == RG_NANO_PAD
 keymaps/keymap-rgnano.c
+#elif CONFIG_KEYPAD == RG35XX_PRO_PAD
+keymaps/keymap-rg35xxpro.c
 #elif CONFIG_KEYPAD == CTRU_PAD
 keymaps/keymap-ctru.c
 #elif CONFIG_KEYPAD == HIBY_R3PROII_PAD

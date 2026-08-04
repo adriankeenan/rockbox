@@ -383,6 +383,15 @@
 #define AST_RIGHT       BUTTON_RIGHT
 #define AST_FIRE        BUTTON_A
 
+#elif CONFIG_KEYPAD == RG35XX_PRO_PAD
+#define AST_PAUSE       BUTTON_X
+#define AST_QUIT        BUTTON_START
+#define AST_THRUST      BUTTON_UP
+#define AST_HYPERSPACE  BUTTON_DOWN
+#define AST_LEFT        BUTTON_LEFT
+#define AST_RIGHT       BUTTON_RIGHT
+#define AST_FIRE        BUTTON_A
+
 #elif CONFIG_KEYPAD == CTRU_PAD
 #define AST_PAUSE       BUTTON_MENU
 #define AST_QUIT        BUTTON_BACK

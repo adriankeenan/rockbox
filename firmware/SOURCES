@@ -287,6 +287,13 @@ target/hosted/anbernic/button-rgnano.c
 target/hosted/anbernic/powermgmt-rgnano.c
 #endif /* RG_NANO */
 
+#if defined(RG35XX_PRO) && !defined(SIMULATOR)
+target/hosted/sysfs.c
+target/hosted/power-linux.c
+target/hosted/anbernic/rg35xxpro/button-rg35xxpro.c
+target/hosted/anbernic/rg35xxpro/backlight-rg35xxpro.c
+#endif /* RG35XX_PRO */
+
 /* Common */
 #ifndef BOOTLOADER
 chunk_alloc.c

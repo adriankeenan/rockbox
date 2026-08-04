@@ -211,8 +211,9 @@ void sdl_window_setup(void)
     int depth = LCD_DEPTH < 8 ? 16 : LCD_DEPTH;
     Uint32 flags = SDL_WINDOW_ALLOW_HIGHDPI;
 
-#if 0
-    /* Fullscreen mode might be desired */
+#if defined(RG35XX_PRO) && !defined(SIMULATOR)
+    /* Running on the device itself: the LCD size matches the panel, so this
+       is a 1:1 fullscreen surface with no scaling involved */
     flags |= SDL_WINDOW_FULLSCREEN;
 #else
     if (display_zoom == 1)

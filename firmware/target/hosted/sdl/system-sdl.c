@@ -231,6 +231,13 @@ void system_init(void)
     if (SDL_InitSubSystem(SDL_INIT_TIMER))
         panicf("%s", SDL_GetError());
 
+#ifdef HAVE_SDL_JOYSTICK
+    /* Targets whose buttons come from an evdev gamepad rather than the
+     * keyboard; not fatal if it fails, the keyboard map still works */
+    if (SDL_InitSubSystem(SDL_INIT_JOYSTICK))
+        DEBUGF("SDL_INIT_JOYSTICK: %s\n", SDL_GetError());
+#endif
+
 #ifdef SIMULATOR
     {
         SDL_version compiled;

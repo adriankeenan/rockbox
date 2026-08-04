@@ -509,6 +509,18 @@
 #define GBN_BUTTON_CONTEXT          BUTTON_X
 #define GBN_BUTTON_NEXT_VAR         BUTTON_Y
 
+#elif CONFIG_KEYPAD == RG35XX_PRO_PAD
+#define GBN_BUTTON_UP               BUTTON_UP
+#define GBN_BUTTON_DOWN             BUTTON_DOWN
+#define GBN_BUTTON_LEFT             BUTTON_LEFT
+#define GBN_BUTTON_RIGHT            BUTTON_RIGHT
+#define GBN_BUTTON_RETREAT          BUTTON_L1
+#define GBN_BUTTON_ADVANCE          BUTTON_R1
+#define GBN_BUTTON_MENU             BUTTON_B
+#define GBN_BUTTON_PLAY             BUTTON_A
+#define GBN_BUTTON_CONTEXT          BUTTON_X
+#define GBN_BUTTON_NEXT_VAR         BUTTON_Y
+
 #elif (CONFIG_KEYPAD == CTRU_PAD)
 #define  GBN_BUTTON_UP              BUTTON_UP
 #define  GBN_BUTTON_DOWN            BUTTON_DOWN

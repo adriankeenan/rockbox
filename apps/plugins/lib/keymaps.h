@@ -274,6 +274,14 @@
 #define BTN_FIRE        BUTTON_A
 #define BTN_PAUSE       BUTTON_START
 
+#elif CONFIG_KEYPAD == RG35XX_PRO_PAD
+#define BTN_UP          BUTTON_UP
+#define BTN_DOWN        BUTTON_DOWN
+#define BTN_LEFT        BUTTON_LEFT
+#define BTN_RIGHT       BUTTON_RIGHT
+#define BTN_FIRE        BUTTON_A
+#define BTN_PAUSE       BUTTON_START
+
 #elif CONFIG_KEYPAD == CTRU_PAD
 #define BTN_UP          BUTTON_UP
 #define BTN_DOWN        BUTTON_DOWN
