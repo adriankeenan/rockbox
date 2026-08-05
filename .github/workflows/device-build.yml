@@ -1,7 +1,7 @@
 name: Device Build
 
 env:
-  ARTIFACT_RETENTION_DAYS: 730
+  ARTIFACT_RETENTION_DAYS: 30
 
 on:
   workflow_dispatch:
@@ -21,7 +21,6 @@ jobs:
         target:
           - name: AIGO Eros Q / K native
             id: 247
-
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -54,5 +53,6 @@ jobs:
         with:
           name: ${{ steps.build-info.outputs.folder_name }}
           path: build/rockbox.zip
+          archive: false
           if-no-files-found: 'error'
           retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
