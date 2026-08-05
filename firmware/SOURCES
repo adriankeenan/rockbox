@@ -95,7 +95,7 @@ target/hosted/sdl/key_to_touch-sdl.c
 #endif
 #ifdef APPLICATION
 target/hosted/sdl/app/load_code-sdl-app.c
-#ifndef RG_NANO
+#if !defined(RG_NANO) && !defined(RG35XX_PRO)
 target/hosted/sdl/app/button-application.c
 #endif
 #ifdef WIN32
