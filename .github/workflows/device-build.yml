@@ -1,7 +1,7 @@
 name: Device Build
 
 env:
-  ARTIFACT_RETENTION_DAYS: 7
+  ARTIFACT_RETENTION_DAYS: 730
 
 on:
   workflow_dispatch:
@@ -9,10 +9,9 @@ on:
     - cron: '0 3 * * 1' # weekly, Monday 03:00 UTC
 
 jobs:
-
   build-device:
     runs-on: ubuntu-latest
-    container: ghcr.io/adriankeenan/rockbox-build-env:build
+    container: ghcr.io/adriankeenan/rockbox-build-env:latest
     permissions:
       contents: read
       packages: read
