@@ -12,7 +12,7 @@ jobs:
 
   build-device:
     runs-on: ubuntu-latest
-    container: ghcr.io/adriankeenan/rockbox-build-env:latest
+    container: ghcr.io/adriankeenan/rockbox-build-env:build
     permissions:
       contents: read
       packages: read
