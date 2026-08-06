@@ -1,0 +1,72 @@
+name: Device Build
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * 1' # weekly, Monday 03:00 UTC
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: ghcr.io/adriankeenan/rockbox-env:latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - name: AIGO Eros Q / K native
+            id: 247
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install toolchain build dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            libgmp-dev libmpfr-dev libmpc-dev libisl-dev \
+            texinfo automake libtool autoconf flex bison
+
+      - name: Cache cross toolchain
+        id: toolchain-cache
+        uses: actions/cache@v4
+        with:
+          path: /opt/rbtoolchain
+          key: rbtoolchain-mips-${{ hashFiles('tools/rockboxdev.sh', 'tools/toolchain-patches/**') }}
+
+      - name: Build cross toolchain
+        if: steps.toolchain-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p /opt/rbtoolchain
+          RBDEV_PREFIX=/opt/rbtoolchain RBDEV_TARGET=i tools/rockboxdev.sh
+
+      - name: Configure
+        env:
+          TARGET_ID: ${{ matrix.target.id }}
+        run: |
+          export PATH="/opt/rbtoolchain/bin:$PATH"
+          mkdir build
+          cd build
+          ../tools/configure --target="${TARGET_ID}" --type=n
+
+      - name: Build
+        run: |
+          export PATH="/opt/rbtoolchain/bin:$PATH"
+          cd build
+          make -j$(nproc)
+          make zip
+
+      - name: Get artifact name
+        id: build-info
+        env:
+          TARGET_ID: ${{ matrix.target.id }}
+          TARGET_NAME: ${{ matrix.target.name }}
+        run: |
+          TARGET_SLUG=$(echo "${TARGET_NAME}" | sed 's/[^a-zA-Z0-9]/-/g' | sed 's/-\+/-/g' | tr '[:upper:]' '[:lower:]')
+          echo "name=rockbox-${TARGET_SLUG}-${TARGET_ID}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.build-info.outputs.name }}
+          path: build/rockbox.zip
+          if-no-files-found: error
