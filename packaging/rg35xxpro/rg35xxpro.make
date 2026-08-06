@@ -24,6 +24,15 @@ port: portclean build
 	rm -rf $(PORT_STAGE_DIR)
 
 	cp $(RG35XXPRO_DIR)/rockbox.sh $(PORT_ROOT)/rockbox.sh
+	cp $(RG35XXPRO_DIR)/rockbox-icon.png $(PORT_ROOT)/rockbox-icon.png
+
+	# gamelist.xml is shared by every port under roms/ports, so it isn't
+	# safe to drop in under that name -- it would silently destroy any
+	# entries other installed ports have already added to it. Ship it
+	# under a different name instead: if roms/ports/gamelist.xml doesn't
+	# exist yet, rename this to gamelist.xml; if it does, merge the <game>
+	# block into it by hand.
+	cp $(RG35XXPRO_DIR)/gamelist.xml $(PORT_ROOT)/rockbox-gamelist-entry.xml
 
 	chmod +x $(PORT_APP_DIR)/rockbox
 	chmod +x $(PORT_ROOT)/rockbox.sh
