@@ -3434,8 +3434,6 @@ fi
     t_cpu="hosted"
     t_manufacturer="anbernic"
     t_model="rg35xxpro"
-    # 640x480 on a 3.5" panel is a dense display; the 8px default is unusable
-    sysfont="20-Terminus"
     ;;
 
    210|hifietma9)

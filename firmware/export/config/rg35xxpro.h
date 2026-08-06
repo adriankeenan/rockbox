@@ -41,9 +41,12 @@
 /* define this if you would like tagcache to build on this target */
 #define HAVE_TAGCACHE
 
-/* LCD dimensions */
-#define LCD_WIDTH  640
-#define LCD_HEIGHT 480
+/* The panel is physically 640x480, but very few themes target that
+   resolution -- render at 320x240 (matches the common QVGA form factor most
+   themes are built for) and let the SDL renderer integer-upscale (2x) onto
+   the real panel. See window-sdl.c's SDL_RenderSetIntegerScale() call. */
+#define LCD_WIDTH  320
+#define LCD_HEIGHT 240
 #define LCD_DEPTH  16
 #define LCD_PIXELFORMAT RGB565
 

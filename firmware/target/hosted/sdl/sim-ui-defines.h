@@ -512,8 +512,8 @@
 
 #elif defined(RG35XX_PRO)
 #define UI_TITLE                    "Anbernic RG35XX Pro"
-#define UI_WIDTH                    640
-#define UI_HEIGHT                   480
+#define UI_WIDTH                    320
+#define UI_HEIGHT                   240
 #define UI_LCD_POSX                 0
 #define UI_LCD_POSY                 0
 
