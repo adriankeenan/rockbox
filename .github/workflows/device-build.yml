@@ -13,13 +13,32 @@ jobs:
       fail-fast: false
       matrix:
         target:
+          # id is tools/configure's menu selection number, not target_id --
+          # the two are different fields and not necessarily related; see
+          # each target's entry in tools/configure to confirm.
           - name: AIGO Eros Q / K native
             id: 247
+            toolchain: mips
+            zip_target: zip
+            zip_path: build/rockbox.zip
+          - name: Anbernic RG35XX Pro
+            id: 310
+            toolchain: rg35xxpro
+            zip_target: port-zip
+            zip_path: build/rockbox-rg35xxpro.zip
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # mips (rockboxdev.sh-built cross-compiler) and rg35xxpro (KNULLI's
+      # prebuilt aarch64 SDK) need entirely different toolchains. rg35xxpro's
+      # is already baked into the container image at a fixed path with
+      # RG35XXPRO_SDK_PATH set globally (see Dockerfile) -- nothing to build
+      # or cache here, unlike mips, whose toolchain is rebuilt from this
+      # repo's own tools/rockboxdev.sh/patches rather than relying on
+      # whatever happened to be baked into the image.
       - name: Install toolchain build dependencies
+        if: matrix.target.toolchain == 'mips'
         run: |
           apt-get update
           apt-get install -y --no-install-recommends \
@@ -27,6 +46,7 @@ jobs:
             texinfo automake libtool autoconf flex bison
 
       - name: Cache cross toolchain
+        if: matrix.target.toolchain == 'mips'
         id: toolchain-cache
         uses: actions/cache@v4
         with:
@@ -34,7 +54,7 @@ jobs:
           key: rbtoolchain-mips-${{ hashFiles('tools/rockboxdev.sh', 'tools/toolchain-patches/**') }}
 
       - name: Build cross toolchain
-        if: steps.toolchain-cache.outputs.cache-hit != 'true'
+        if: matrix.target.toolchain == 'mips' && steps.toolchain-cache.outputs.cache-hit != 'true'
         run: |
           mkdir -p /opt/rbtoolchain
           RBDEV_PREFIX=/opt/rbtoolchain RBDEV_TARGET=i tools/rockboxdev.sh
@@ -53,7 +73,7 @@ jobs:
           export PATH="/opt/rbtoolchain/bin:$PATH"
           cd build
           make -j$(nproc)
-          make zip
+          make ${{ matrix.target.zip_target }}
 
       - name: Get artifact name
         id: build-info
@@ -68,5 +88,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.build-info.outputs.name }}
-          path: build/rockbox.zip
+          path: ${{ matrix.target.zip_path }}
           if-no-files-found: error
