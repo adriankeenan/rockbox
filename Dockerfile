@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     ca-certificates \
     perl \
+    file \
     libsdl-dev \
     libsdl2-dev \
     gcc-mingw-w64 \
@@ -48,7 +49,12 @@ ENV PATH="/opt/rbtoolchain/bin:${PATH}"
 # it's KNULLI's own published cross-toolchain + sysroot, which is what
 # guarantees the resulting binary links against the same libc/SDL2 that
 # actually ships on the device. libsdl2-dev above additionally lets this
-# target's simulator build natively on the host.
+# target's simulator build natively on the host. relocate-sdk.sh shells out
+# to `file` to tell text files (which need their baked-in old path rewritten)
+# from binaries (which must not be touched); without it (file is not part of
+# Ubuntu's minimal image) it silently no-ops on every file instead of erroring,
+# which only happens not to break tools that self-locate via $0 rather than a
+# fixed path, such as sdl2-config -- hence `file` above.
 ENV RG35XXPRO_SDK_RELEASE=rg35xx-plush-sdk-20240421
 ENV RG35XXPRO_SDK_PATH=/opt/rg35xxpro-sdk/aarch64-buildroot-linux-gnu_sdk-buildroot
 RUN mkdir -p /opt/rg35xxpro-sdk \
