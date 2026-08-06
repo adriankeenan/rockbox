@@ -27,8 +27,33 @@
    all of the real input arrives through the SDL joystick events below.  The
    keyboard map is kept for running with a USB keyboard attached. */
 
+/* TEMPORARY: logs every raw input event reaching Rockbox (keysym, joystick
+   button/hat/axis index) to work out the real hardware mapping -- e.g. in
+   case a physical control such as volume arrives as a keyboard event
+   rather than a joystick one, or doesn't reach Rockbox at all. Written
+   relative to cwd, which rockbox.sh sets to the directory the binary lives
+   in, so it lands at roms/ports/rockbox/joydebug.log on the SD card.
+   Remove once the mapping below is confirmed on-device. */
+#include <stdio.h>
+#include <stdarg.h>
+
+static void rg35xxpro_joy_debug(const char *fmt, ...)
+{
+    FILE *f = fopen("joydebug.log", "a");
+    if (!f)
+        return;
+
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(f, fmt, ap);
+    va_end(ap);
+    fclose(f);
+}
+
 int key_to_button(int keyboard_key)
 {
+    rg35xxpro_joy_debug("keysym=%d (0x%x)\n", keyboard_key, keyboard_key);
+
     int new_btn = BUTTON_NONE;
     switch (keyboard_key)
     {
@@ -104,6 +129,8 @@ int key_to_button(int keyboard_key)
    real indices and only this table needs correcting. */
 int joy_to_button(int joy_button)
 {
+    rg35xxpro_joy_debug("button index=%d\n", joy_button);
+
     int new_btn = BUTTON_NONE;
     switch (joy_button)
     {
@@ -159,6 +186,8 @@ int joy_to_button(int joy_button)
    diffs successive values so returning the full set is correct here. */
 int joy_hat_to_button(int hat_value)
 {
+    rg35xxpro_joy_debug("hat value=0x%02x\n", hat_value);
+
     int new_btn = BUTTON_NONE;
 
     if (hat_value & SDL_HAT_UP)
@@ -177,6 +206,8 @@ int joy_hat_to_button(int hat_value)
    moved past the deadzone in the positive direction, 0 for negative. */
 int joy_axis_to_button(int axis, int positive)
 {
+    rg35xxpro_joy_debug("axis=%d positive=%d\n", axis, positive);
+
     int new_btn = BUTTON_NONE;
     switch (axis)
     {
