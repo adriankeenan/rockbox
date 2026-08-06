@@ -3415,7 +3415,7 @@ fi
     ;;
 
    310|rg35xxpro)
-    target_id=125
+    target_id=500
     application="yes"
     modelname="rg35xxpro"
     app_type="sdl-app"

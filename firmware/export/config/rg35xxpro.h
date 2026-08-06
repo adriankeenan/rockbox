@@ -12,8 +12,10 @@
 
 #define HAVE_FPU
 
-/* For Rolo and boot loader */
-#define MODEL_NUMBER 125
+/* For Rolo and boot loader.  Deliberately far above upstream's current
+   sequential range (mid-120s) since this port isn't upstreamed and won't be
+   assigned a real number by that process. */
+#define MODEL_NUMBER 500
 
 #define MODEL_NAME   "Anbernic RG35XX Pro"
 
