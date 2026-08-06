@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     perl \
     libsdl-dev \
+    libsdl2-dev \
     gcc-mingw-w64 \
     g++-mingw-w64 \
     bzip2 \
@@ -40,3 +41,21 @@ RUN git clone --depth=1 git://git.rockbox.org/rockbox /tmp/rockbox \
     && rm -rf /tmp/rockbox /tmp/rbdev-dl /tmp/rbdev-build
 
 ENV PATH="/opt/rbtoolchain/bin:${PATH}"
+
+# Fetch and relocate the KNULLI aarch64 buildroot SDK for the H700 device
+# family (RG35XX Pro/Plus/H), used for the Anbernic RG35XX Pro application
+# build. Unlike the toolchains above, this isn't built via rockboxdev.sh --
+# it's KNULLI's own published cross-toolchain + sysroot, which is what
+# guarantees the resulting binary links against the same libc/SDL2 that
+# actually ships on the device. libsdl2-dev above additionally lets this
+# target's simulator build natively on the host.
+ENV RG35XXPRO_SDK_RELEASE=rg35xx-plush-sdk-20240421
+ENV RG35XXPRO_SDK_PATH=/opt/rg35xxpro-sdk/aarch64-buildroot-linux-gnu_sdk-buildroot
+RUN mkdir -p /opt/rg35xxpro-sdk \
+    && wget -q -O /tmp/rg35xxpro-sdk.tar.gz \
+        "https://github.com/knulli-cfw/toolchains/releases/download/${RG35XXPRO_SDK_RELEASE}/aarch64-buildroot-linux-gnu_sdk-buildroot.tar.gz" \
+    && tar xzf /tmp/rg35xxpro-sdk.tar.gz -C /opt/rg35xxpro-sdk \
+    && rm /tmp/rg35xxpro-sdk.tar.gz \
+    && "${RG35XXPRO_SDK_PATH}/relocate-sdk.sh"
+
+ENV PATH="${RG35XXPRO_SDK_PATH}/bin:${PATH}"
