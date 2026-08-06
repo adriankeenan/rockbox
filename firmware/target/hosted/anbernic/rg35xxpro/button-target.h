@@ -42,8 +42,9 @@
 #define BUTTON_VOL_UP   0x00010000
 #define BUTTON_VOL_DOWN 0x00020000
 #define BUTTON_POWER    0x00040000
+#define BUTTON_JOY_CLICK 0x00080000
 
-#define BUTTON_MAIN     0x0007ffff
+#define BUTTON_MAIN     0x000fffff
 
 /* Software power-off */
 #define POWEROFF_BUTTON BUTTON_POWER
