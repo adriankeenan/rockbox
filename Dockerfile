@@ -1,4 +1,7 @@
-FROM ubuntu:latest
+# Pinned to Ubuntu 26.04 LTS by digest (latest as of this pin) rather than
+# the floating "latest" tag, so a base-image update can't silently change
+# this build.
+FROM ubuntu:26.04@sha256:678c6550cc43645e08669028bc177f50be4e7c5b8cca677067b1914d4afc7a03
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -24,7 +27,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     bison \
     && rm -rf /var/lib/apt/lists/*
 
-ENV SDL2_VERSION=2.32.8
+ENV SDL2_VERSION=2.32.10
 RUN wget https://www.libsdl.org/release/SDL2-${SDL2_VERSION}.tar.gz \
     && tar xzf SDL2-${SDL2_VERSION}.tar.gz \
     && cd SDL2-${SDL2_VERSION} \
