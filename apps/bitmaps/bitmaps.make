@@ -51,9 +51,14 @@ $(BUILDDIR)/apps/bitmaps/remote_native/%.c: $(ROOTDIR)/apps/bitmaps/remote_nativ
 	$(call PRINTS,BMP2RB $(<F))$(BMP2RB_REMOTENATIVE) -b -h $(BMPINCDIR) $< > $@
 
 ifdef APP_TYPE
-# Bitmaps must be explicitly Position independent to avoid linker warnings
+# Bitmaps must be explicitly Position independent to avoid linker warnings.
+# PSPSDK's toolchain (MIPS eabi) cannot generate PIC code at all, and PSP
+# doesn't support dynamic loading in the first place (see lc-psp.c), so skip
+# this for PSP.
+ifeq (,$(findstring psp-app,$(APP_TYPE)))
 $(BUILDDIR)/apps/bitmaps/native/%.o: CFLAGS += -fPIC
 $(BUILDDIR)/apps/bitmaps/mono/%.o: CFLAGS += -fPIC
 $(BUILDDIR)/apps/bitmaps/remote_mono/%.o: CFLAGS += -fPIC
 $(BUILDDIR)/apps/bitmaps/remote_native/%.o: CFLAGS += -fPIC
+endif
 endif

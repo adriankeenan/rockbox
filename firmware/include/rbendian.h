@@ -27,7 +27,7 @@
 #endif
 
 #ifndef __MINGW32__
-#if defined(__APPLE__) || defined(CTRU)
+#if defined(__APPLE__) || defined(CTRU) || defined(PSP)
 #include <sys/types.h>
 #else
 #include <endian.h>

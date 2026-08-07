@@ -21,7 +21,7 @@
 #ifdef __APPLE__
 #include <sys/param.h>
 #include <sys/mount.h>
-#else
+#elif !defined(PSP)
 #include <sys/statfs.h> /* lowest common denominator */
 #endif
 #include <sys/stat.h>
@@ -216,6 +216,7 @@ int os_opendir_and_fd(const char *osdirname, DIR **osdirpp, int *osfdp)
 void volume_size(IF_MV(int volume,) sector_t *sizep, sector_t *freep)
 {
     sector_t size = 0, free = 0;
+#if !defined(PSP)
     char volpath[MAX_PATH];
     struct statfs fs;
 
@@ -240,6 +241,7 @@ void volume_size(IF_MV(int volume,) sector_t *sizep, sector_t *freep)
             free = (fs.f_bfree / 2) * (fs.f_frsize / 512);
 #endif
     }
+#endif /* !PSP */
 
     if (sizep)
         *sizep = size;

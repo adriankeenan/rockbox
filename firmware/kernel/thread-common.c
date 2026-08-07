@@ -303,7 +303,7 @@ int thread_get_debug_info(unsigned int thread_id,
 #ifdef HAVE_SCHEDULER_BOOSTCTRL
         cpu_boost = thread->cpu_boost;
 #endif
-#if !defined(HAVE_SDL_THREADS) && !defined(CTRU)
+#if !defined(HAVE_SDL_THREADS) && !defined(CTRU) && !defined(PSP)
         infop->stack_usage = stack_usage(thread->stack, thread->stack_size);
 
         size_t stack_used_current =

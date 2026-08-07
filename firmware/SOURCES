@@ -615,6 +615,8 @@ drivers/audio/as3514.c
 drivers/audio/wm8978.c
 #elif defined(CTRU)
 drivers/audio/ctru.c
+#elif defined(PSP)
+drivers/audio/psp.c
 #endif
 #endif /* (CONFIG_PLATFORM & PLATFORM_NATIVE) */
 #endif /* !defined(BOOTLOADER) */
@@ -2057,6 +2059,20 @@ target/hosted/ctru/lib/sys_timer.c
 target/hosted/ctru/lib/bfile/bfile.c
 #endif
 
+#if (CONFIG_PLATFORM & PLATFORM_PSP)
+target/hosted/filesystem-unix.c
+target/hosted/psp/system-psp.c
+target/hosted/psp/thread-psp.c
+target/hosted/psp/kernel-psp.c
+target/hosted/psp/button-psp.c
+target/hosted/psp/lcd-psp.c
+target/hosted/psp/pcm-psp.c
+target/hosted/psp/timer-psp.c
+target/hosted/psp/backlight-psp.c
+target/hosted/psp/powermgmt-psp.c
+target/hosted/psp/lc-psp.c
+#endif
+
 #else /* defined(SIMULATOR) */
 
 #ifdef WIN32
@@ -2110,7 +2126,7 @@ kernel/semaphore.c
 #endif
 #ifdef HAVE_SDL_THREADS
 target/hosted/sdl/thread-sdl.c
-#elif !defined(CTRU)
+#elif !defined(CTRU) && !defined(PSP)
 kernel/thread.c
 #endif
 kernel/thread-common.c

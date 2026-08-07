@@ -83,6 +83,7 @@
 #define X1000        1000
 #define STM32H743   32743
 #define N10480H     10480
+#define PSP_ALLEGREX 4000
 
 /* platforms
  * bit fields to allow PLATFORM_HOSTED to be OR'ed e.g. with a
@@ -93,6 +94,7 @@
 #define PLATFORM_ANDROID (1<<2)
 #define PLATFORM_SDL     (1<<3)
 #define PLATFORM_CTRU    (1<<4)
+#define PLATFORM_PSP     (1<<5)
 
 /* CONFIG_KEYPAD */
 #define IRIVER_H100_PAD     4
@@ -157,6 +159,7 @@
 #define RG_NANO_PAD        77
 #define CTRU_PAD           78
 #define HIBY_R3PROII_PAD   79
+#define PSP_PAD            80
 
 /* CONFIG_REMOTE_KEYPAD */
 #define H100_REMOTE   1
@@ -580,6 +583,8 @@ Lyre prototype 1 */
 #include "config/hibyr3proii.h"
 #elif defined(HIBY_R1)
 #include "config/hibyr1.h"
+#elif defined(PSP)
+#include "config/psp.h"
 #else
 #error "unknown hardware platform!"
 #endif
