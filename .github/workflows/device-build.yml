@@ -8,7 +8,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: ghcr.io/adriankeenan/rockbox-env:latest
+    # TEMPORARY: pinned to the rg35xxpro-tagged image while that content is
+    # validated in CI, rather than :latest. Revert to :latest once it's
+    # confirmed good and promoted.
+    container: ghcr.io/adriankeenan/rockbox-env:rg35xxpro
     strategy:
       fail-fast: false
       matrix:
