@@ -13,9 +13,15 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          # id is tools/configure's menu selection number, not target_id --
-          # the two are different fields and not necessarily related; see
-          # each target's entry in tools/configure to confirm.
+          # configure_target is tools/configure's modelname string (its
+          # --target= value), not target_id -- the two are different fields
+          # and not necessarily related; see each target's entry in
+          # tools/configure to confirm. Deliberately the string rather than
+          # the numeric menu selection number: that number isn't stable --
+          # it's been bumped once already to dodge a collision with
+          # upstream's own numbering -- and using it here would mean this
+          # workflow needing an update in lockstep every time it moves. The
+          # modelname string doesn't have that problem.
           #
           # Both targets' toolchains are baked into the container image
           # (see Dockerfile) rather than built here: rg35xxpro's KNULLI SDK
@@ -23,11 +29,11 @@ jobs:
           # /opt/rbtoolchain via rockboxdev.sh. Nothing to build or cache
           # in this workflow for either.
           - name: AIGO Eros Q / K native
-            id: 247
+            configure_target: erosqnative
             zip_target: zip
             zip_path: build/rockbox.zip
           - name: Anbernic RG35XX Pro
-            id: 500
+            configure_target: rg35xxpro
             zip_target: port-zip
             zip_path: build/rockbox-rg35xxpro.zip
     steps:
@@ -36,12 +42,12 @@ jobs:
 
       - name: Configure
         env:
-          TARGET_ID: ${{ matrix.target.id }}
+          CONFIGURE_TARGET: ${{ matrix.target.configure_target }}
         run: |
           export PATH="/opt/rbtoolchain/bin:$PATH"
           mkdir build
           cd build
-          ../tools/configure --target="${TARGET_ID}" --type=n
+          ../tools/configure --target="${CONFIGURE_TARGET}" --type=n
 
       - name: Build
         run: |
@@ -53,11 +59,11 @@ jobs:
       - name: Get artifact name
         id: build-info
         env:
-          TARGET_ID: ${{ matrix.target.id }}
+          CONFIGURE_TARGET: ${{ matrix.target.configure_target }}
           TARGET_NAME: ${{ matrix.target.name }}
         run: |
           TARGET_SLUG=$(echo "${TARGET_NAME}" | sed 's/[^a-zA-Z0-9]/-/g' | sed 's/-\+/-/g' | tr '[:upper:]' '[:lower:]')
-          echo "name=rockbox-${TARGET_SLUG}-${TARGET_ID}" >> "$GITHUB_OUTPUT"
+          echo "name=rockbox-${TARGET_SLUG}-${CONFIGURE_TARGET}" >> "$GITHUB_OUTPUT"
 
       - name: Upload firmware artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
