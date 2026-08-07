@@ -27,7 +27,7 @@ jobs:
             zip_target: zip
             zip_path: build/rockbox.zip
           - name: Anbernic RG35XX Pro
-            id: 310
+            id: 500
             zip_target: port-zip
             zip_path: build/rockbox-rg35xxpro.zip
     steps:
