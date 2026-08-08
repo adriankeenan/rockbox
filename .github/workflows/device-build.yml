@@ -8,29 +8,15 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # TEMPORARY: pinned to the rg35xxpro-tagged image while that content is
-    # validated in CI, rather than :latest. Revert to :latest once it's
-    # confirmed good and promoted.
+    # TEMPORARY: testing the rg35xxpro tag before promoting it to :latest.
     container: ghcr.io/adriankeenan/rockbox-env:rg35xxpro
     strategy:
       fail-fast: false
       matrix:
         target:
-          # configure_target is tools/configure's modelname string (its
-          # --target= value), not target_id -- the two are different fields
-          # and not necessarily related; see each target's entry in
-          # tools/configure to confirm. Deliberately the string rather than
-          # the numeric menu selection number: that number isn't stable --
-          # it's been bumped once already to dodge a collision with
-          # upstream's own numbering -- and using it here would mean this
-          # workflow needing an update in lockstep every time it moves. The
-          # modelname string doesn't have that problem.
-          #
-          # Both targets' toolchains are baked into the container image
-          # (see Dockerfile) rather than built here: rg35xxpro's KNULLI SDK
-          # at RG35XXPRO_SDK_PATH, and the mips cross-compiler at
-          # /opt/rbtoolchain via rockboxdev.sh. Nothing to build or cache
-          # in this workflow for either.
+          # configure_target is tools/configure's modelname string, not the
+          # (unstable) numeric menu id. Toolchains for both are baked into
+          # the container image already, see Dockerfile.
           - name: AIGO Eros Q / K native
             configure_target: erosqnative
             zip_target: zip
