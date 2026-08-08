@@ -89,9 +89,6 @@ int key_to_button(int keyboard_button)
         case SDLK_MINUS:
             new_btn = BUTTON_VOL_DOWN;
             break;
-        case SDLK_p:
-            new_btn = BUTTON_POWER;
-            break;
     }
     return new_btn;
 }
@@ -115,6 +112,5 @@ struct button_map bm[] = {
     { SDLK_f,           0, 0, 0, "Function" },
     { SDLK_EQUALS,      0, 0, 0, "Volume Up" },
     { SDLK_MINUS,       0, 0, 0, "Volume Down" },
-    { SDLK_p,           0, 0, 0, "Power" },
     { 0, 0, 0, 0, "None" }
 };

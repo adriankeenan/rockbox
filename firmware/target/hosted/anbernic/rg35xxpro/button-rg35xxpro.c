@@ -27,9 +27,12 @@
    all of the real input arrives through the SDL joystick events below.  The
    keyboard map is kept for running with a USB keyboard attached.
 
-   The physical Power button is the one exception: it arrives as a keyboard
-   event (SDLK_POWER), not a joystick one -- it's on a separate input path
-   entirely, confirmed by capturing raw hardware input via a debug build. */
+   The physical Power button is deliberately not mapped to anything here (it
+   arrives as a keyboard event, SDLK_POWER, on a separate input path from the
+   joystick, confirmed via a debug build): the system already owns it for
+   suspend/shutdown, so Rockbox no longer races it for the same button. Menu
+   is POWEROFF_BUTTON instead -- see button-target.h -- so a long hold of
+   Menu is how Rockbox itself exits back to KNULLI. */
 
 int key_to_button(int keyboard_key)
 {
@@ -91,10 +94,6 @@ int key_to_button(int keyboard_key)
             break;
         case SDLK_MINUS:
             new_btn = BUTTON_VOL_DOWN;
-            break;
-        case SDLK_p:
-        case SDLK_POWER:
-            new_btn = BUTTON_POWER;
             break;
         default:
             break;

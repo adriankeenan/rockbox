@@ -41,13 +41,15 @@
 #define BUTTON_FN       0x00008000
 #define BUTTON_VOL_UP   0x00010000
 #define BUTTON_VOL_DOWN 0x00020000
-#define BUTTON_POWER    0x00040000
 #define BUTTON_JOY_CLICK 0x00080000
 
 #define BUTTON_MAIN     0x000fffff
 
-/* Software power-off */
-#define POWEROFF_BUTTON BUTTON_POWER
+/* Software power-off. The physical Power button is left to the system
+   (KNULLI owns suspend/shutdown for it), so Rockbox uses a long hold of
+   Menu as its own exit gesture instead -- a quick tap still opens the main
+   menu as usual, see apps/keymaps/keymap-rg35xxpro.c. */
+#define POWEROFF_BUTTON BUTTON_MENU
 #define POWEROFF_COUNT 10
 
 /* SDL keyboard fallback; also what the simulator uses */
