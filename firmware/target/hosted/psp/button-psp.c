@@ -28,6 +28,14 @@
 
 static bool hold_state = false;
 
+/* Analog stick: Lx/Ly are 0-255, centered on ~128. Tilting past the
+ * deadzone synthesizes the same BUTTON_UP/DOWN/LEFT/RIGHT bits as the
+ * D-pad, so the stick works as an alternate input with no keymap
+ * changes -- either the D-pad or the stick (or both at once) drives
+ * the same UP/DOWN/LEFT/RIGHT actions. */
+#define ANALOG_CENTER   128
+#define ANALOG_DEADZONE 64
+
 int button_read_device(int *data)
 {
     (void)data;
@@ -61,13 +69,22 @@ int button_read_device(int *data)
     if (pad.Buttons & PSP_CTRL_SELECT)   key |= BUTTON_SELECT;
     if (pad.Buttons & PSP_CTRL_HOME)     key |= BUTTON_HOME;
 
+    int ax = (int)pad.Lx - ANALOG_CENTER;
+    int ay = (int)pad.Ly - ANALOG_CENTER;
+
+    if (ax < -ANALOG_DEADZONE) key |= BUTTON_LEFT;
+    if (ax >  ANALOG_DEADZONE) key |= BUTTON_RIGHT;
+    if (ay < -ANALOG_DEADZONE) key |= BUTTON_UP;
+    if (ay >  ANALOG_DEADZONE) key |= BUTTON_DOWN;
+
     return key;
 }
 
 void button_init_device(void)
 {
     sceCtrlSetSamplingCycle(0);
-    sceCtrlSetSamplingMode(PSP_CTRL_MODE_DIGITAL);
+    /* ANALOG (not DIGITAL) mode: DIGITAL mode leaves Lx/Ly unpopulated. */
+    sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
 }
 
 bool button_hold(void)
