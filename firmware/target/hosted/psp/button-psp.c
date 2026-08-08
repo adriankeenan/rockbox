@@ -37,8 +37,6 @@ int button_read_device(int *data)
         return BUTTON_NONE;
 
     hold_state = (pad.Buttons & PSP_CTRL_HOLD) != 0;
-    if (hold_state)
-        return BUTTON_NONE;
 
     int key = BUTTON_NONE;
 
