@@ -999,12 +999,17 @@ pspsdkcc () {
 
     GCCOPTS="$GCCOPTS -G0 -Umips -I$PSPDEV/psp/sdk/include -I$PSPDEV/psp/include"
 
-    LDOPTS="-L$PSPDEV/psp/sdk/lib -lpspaudiolib -lpspaudio -lpspctrl -lpspgu"
+    # libpspkernel.a's SysclibForKernel stubs bundle re-exports of several
+    # plain libc functions (memcpy/memset/memcmp/memmove/setjmp/longjmp/
+    # snprintf/strtol/strtoul, ...) in the same objects as the sceKernel*
+    # syscalls we actually need from it. Since -lpspkernel is scanned
+    # before the implicit trailing -lc, those bogus unresolved-syscall
+    # versions would otherwise win over newlib's real implementations --
+    # explicit -lc first makes sure the real ones get resolved before
+    # -lpspkernel's objects are ever pulled in.
+    LDOPTS="-L$PSPDEV/psp/sdk/lib -lc -lpspaudiolib -lpspaudio -lpspctrl -lpspgu"
     LDOPTS="$LDOPTS -lpspgum -lpspdisplay -lpsppower -lpsprtc -lpspkernel -lm"
 
-    # libpspkernel.a's SysclibForKernel stubs re-export a few libc symbols
-    # (e.g. strtol/strtoul) alongside the sceKernel* symbols we actually
-    # need from it, clashing with newlib's own copies.
     GLOBAL_LDOPTS="$GLOBAL_LDOPTS -Wl,--allow-multiple-definition"
 
     # Codecs/plugins link against Rockbox's own codec_crt0.o entry point

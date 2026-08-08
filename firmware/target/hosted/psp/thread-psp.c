@@ -361,7 +361,12 @@ unsigned int create_thread(void (*function)(void),
     thread->context.told = NULL;
     thread->priority = priority;
 
-    size_t real_stack_size = stack_size > 0 ? stack_size : 32*1024;
+    /* DEFAULT_STACK_SIZE (thread-internal.h) is 256 bytes -- fine on
+     * SDL/CTRU where it's ignored and a real OS-thread stack is used
+     * underneath, but sceKernelCreateThread() rejects anything that
+     * small outright (ILLEGAL_STACK_SIZE). Since our "thread" IS a real
+     * PSP thread, always give it a real stack. */
+    size_t real_stack_size = stack_size > 16*1024 ? stack_size : 16*1024;
 
     SceUID tid = sceKernelCreateThread(name ? name : "rockbox_thread",
                                        psp_runthread, 0x20,
