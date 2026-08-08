@@ -64,4 +64,9 @@ RUN mkdir -p /opt/rg35xxpro-sdk \
     && rm /tmp/rg35xxpro-sdk.tar.gz \
     && "${RG35XXPRO_SDK_PATH}/relocate-sdk.sh"
 
-ENV PATH="${RG35XXPRO_SDK_PATH}/bin:${PATH}"
+# Deliberately not added to PATH: tools/configure's rg35xxprocc() references
+# every tool it needs (gcc, sdl2-config, ...) by absolute path under
+# RG35XXPRO_SDK_PATH already. Putting the SDK's bin/ on PATH shadows the
+# system `perl` with the SDK's own bundled one, which is missing core
+# modules (e.g. List::Util) and breaks tools/multigcc.pl for every target,
+# not just this one.
