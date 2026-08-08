@@ -33,10 +33,22 @@
 
 long start_tick;
 
-/* Mutex serializing level changes and excluding threads while a "handler"
- * runs, plus a semaphore acting as a broadcast condition for when
- * interrupts become re-enabled. */
-static SceUID irq_mtx;
+/* irq_mtx has to be reentrant: sim_enter_irq_handler() holds it for the
+ * whole duration of call_tick_tasks() (i.e. across button_tick() and
+ * friends), and tick tasks routinely call disable_irq()/restore_irq()
+ * themselves (queue_post() does, for every posted button event) which
+ * both go through set_irq_level() below and so need to re-acquire this
+ * same lock from the same (tick) thread without deadlocking. A plain
+ * sceKernelCreateSema() semaphore isn't reentrant, so track the owner
+ * and a recursion count the same way thread-psp.c's reclock does. */
+typedef struct
+{
+    SceUID sema;
+    SceUID owner;
+    int count;
+} psp_irqlock_t;
+
+static psp_irqlock_t irq_mtx;
 static SceUID irq_cond_sema;
 static SceUID tick_thread_id = -1;
 static volatile bool tick_thread_should_run;
@@ -46,9 +58,38 @@ static int volatile interrupt_level = HIGHEST_IRQ_LEVEL;
 static int handlers_pending = 0;
 static int status_reg = 0;
 
+static void irqlock_init(psp_irqlock_t *l)
+{
+    l->sema = sceKernelCreateSema("rb_irq_mtx", 0, 1, 1, NULL);
+    l->owner = -1;
+    l->count = 0;
+}
+
+static void irqlock_lock(psp_irqlock_t *l)
+{
+    SceUID self = sceKernelGetThreadId();
+    if (l->owner == self)
+    {
+        l->count++;
+        return;
+    }
+    sceKernelWaitSema(l->sema, 1, NULL);
+    l->owner = self;
+    l->count = 1;
+}
+
+static void irqlock_unlock(psp_irqlock_t *l)
+{
+    if (--l->count == 0)
+    {
+        l->owner = -1;
+        sceKernelSignalSema(l->sema, 1);
+    }
+}
+
 int set_irq_level(int level)
 {
-    sceKernelWaitSema(irq_mtx, 1, NULL);
+    irqlock_lock(&irq_mtx);
 
     int oldlevel = interrupt_level;
 
@@ -60,20 +101,20 @@ int set_irq_level(int level)
 
     interrupt_level = level;
 
-    sceKernelSignalSema(irq_mtx, 1);
+    irqlock_unlock(&irq_mtx);
     return oldlevel;
 }
 
 void sim_enter_irq_handler(void)
 {
-    sceKernelWaitSema(irq_mtx, 1, NULL);
+    irqlock_lock(&irq_mtx);
     handlers_pending++;
 
     while (interrupt_level != 0)
     {
-        sceKernelSignalSema(irq_mtx, 1);
+        irqlock_unlock(&irq_mtx);
         sceKernelWaitSema(irq_cond_sema, 1, NULL);
-        sceKernelWaitSema(irq_mtx, 1, NULL);
+        irqlock_lock(&irq_mtx);
     }
 
     status_reg = 1;
@@ -85,7 +126,7 @@ void sim_exit_irq_handler(void)
         sceKernelSignalSema(irq_cond_sema, 1);
 
     status_reg = 0;
-    sceKernelSignalSema(irq_mtx, 1);
+    irqlock_unlock(&irq_mtx);
 }
 
 static int tick_thread_func(SceSize args, void *argp)
@@ -124,7 +165,7 @@ void tick_start(unsigned int interval_in_ms)
 {
     (void)interval_in_ms;
 
-    irq_mtx = sceKernelCreateSema("rb_irq_mtx", 0, 1, 1, NULL);
+    irqlock_init(&irq_mtx);
     irq_cond_sema = sceKernelCreateSema("rb_irq_cond", 0, 0, 255, NULL);
 
     start_tick = sceKernelGetSystemTimeLow() / 1000;
