@@ -33,7 +33,14 @@ int button_read_device(int *data)
     (void)data;
     SceCtrlData pad;
 
-    if (sceCtrlReadBufferPositive(&pad, 1) <= 0)
+    /* Peek, not Read: Read blocks until the next sampling cycle if called
+     * more than once per cycle, which button_tick() (called every HZ
+     * tick) reliably does. That block happens while this thread still
+     * holds the cooperative scheduler's global lock (see thread-psp.c),
+     * stalling every other Rockbox thread until the next sample -- Peek
+     * just returns the latest sample immediately, which is what a
+     * poll-driven caller like button_tick() actually wants. */
+    if (sceCtrlPeekBufferPositive(&pad, 1) <= 0)
         return BUTTON_NONE;
 
     hold_state = (pad.Buttons & PSP_CTRL_HOLD) != 0;
