@@ -4,6 +4,7 @@ export PATH := $(PSPDEV)/bin:$(PATH)
 
 MKSFOEX  ?= mksfoex
 PACK_PBP ?= pack-pbp
+FIXUP    ?= psp-fixup-imports
 
 PSP_EBOOT_TITLE := Rockbox
 
@@ -15,6 +16,7 @@ EBOOT_PBP := $(BUILDDIR)/EBOOT.PBP
 $(BUILDDIR)/$(BINARY): $$(OBJ) $(FIRMLIB) $(VOICESPEEXLIB) $(CORE_LIBS)
 	$(call PRINTS,LD $(@F))$(CC) -o $@ -Wl,--start-group $^ -Wl,--end-group $(LDOPTS) $(GLOBAL_LDOPTS) \
 	-Wl,$(LDMAP_OPT),$(BUILDDIR)/rockbox.map
+	$(call PRINTS,FIXUP $(@F))$(FIXUP) $@
 
 $(SFO_PATH):
 	$(MKSFOEX) '$(PSP_EBOOT_TITLE)' $@
