@@ -109,7 +109,12 @@ int key_to_button(int keyboard_key)
    and 12) both fire for the analog stick click -- it double-reports,
    likely switch bounce -- so both map to BUTTON_JOY_CLICK. No physical
    control was found to trigger a distinct "Function" button separately
-   from Menu; BUTTON_FN currently has no joystick source. */
+   from Menu; BUTTON_FN currently has no joystick source.
+
+   Indices 16 and 2 (volume up/down) are deliberately not mapped here:
+   KNULLI's own volume daemon reads the same physical buttons and already
+   drives the system/ALSA volume, so leaving Rockbox's software volume out
+   of it avoids the two stacking into one confusing double adjustment. */
 int joy_to_button(int joy_button)
 {
     int new_btn = BUTTON_NONE;
@@ -147,12 +152,6 @@ int joy_to_button(int joy_button)
             break;
         case 11:
             new_btn = BUTTON_MENU;
-            break;
-        case 16:
-            new_btn = BUTTON_VOL_UP;
-            break;
-        case 2:
-            new_btn = BUTTON_VOL_DOWN;
             break;
         case 1:
         case 12:

@@ -41,10 +41,21 @@ static int sdl_volume_level(int volume)
 }
 #endif /* HAVE_SW_VOLUME_CONTROL */
 
+#if defined(RG35XX_PRO) && defined(HAVE_SW_VOLUME_CONTROL)
+/* KNULLI's own volume daemon drives the system/ALSA volume from the same
+   physical buttons already (see button-rg35xxpro.c), so it's the single
+   source of truth here -- pin Rockbox's own gain to unity rather than
+   letting a second, independent attenuation stage creep in via Settings. */
+#define RG35XXPRO_FIXED_VOLUME sound_max(SOUND_VOLUME)
+#endif
+
 #if defined(AUDIOHW_HAVE_MONO_VOLUME)
 void audiohw_set_volume(int volume)
 {
 #ifdef HAVE_SW_VOLUME_CONTROL
+#ifdef RG35XXPRO_FIXED_VOLUME
+    volume = RG35XXPRO_FIXED_VOLUME;
+#endif
     volume = sdl_volume_level(volume);
     pcm_set_master_volume(volume, volume);
 #else
@@ -57,6 +68,9 @@ void audiohw_set_volume(int volume)
 void audiohw_set_volume(int vol_l, int vol_r)
 {
 #ifdef HAVE_SW_VOLUME_CONTROL
+#ifdef RG35XXPRO_FIXED_VOLUME
+    vol_l = vol_r = RG35XXPRO_FIXED_VOLUME;
+#endif
     vol_l = sdl_volume_level(vol_l);
     vol_r = sdl_volume_level(vol_r);
     pcm_set_master_volume(vol_l, vol_r);
