@@ -31,15 +31,23 @@
 /* define this if you would like tagcache to build on this target */
 #define HAVE_TAGCACHE
 
-/* LCD dimensions */
-#define LCD_WIDTH  480
-#define LCD_HEIGHT 272
+/* Rockbox's internal software framebuffer is kept at the classic 320x240
+ * resolution (rather than the PSP's native 480x272) so that the large
+ * body of existing 320x240 Rockbox themes work unmodified. lcd-psp.c
+ * scales this up to fill the real 480x272 panel at display-update time,
+ * preserving aspect ratio (pillarboxed, since 320x240 is 4:3 vs. the
+ * panel's wider ~1.76:1). See PSP_DISP_WIDTH/PSP_DISP_HEIGHT in
+ * lcd-target.h for the real physical panel dimensions. */
+#define LCD_WIDTH  320
+#define LCD_HEIGHT 240
 
 #define LCD_DEPTH  16
 #define LCD_PIXELFORMAT RGB565
 
-/* approximate DPI of the PSP's 4.3" 480x272 screen */
-#define LCD_DPI 128
+/* approximate DPI of the PSP's 4.3" screen as seen through the scaled-up
+ * 320x240 logical framebuffer (240 logical rows fill the same ~2.4in of
+ * panel height that 272 native rows used to) */
+#define LCD_DPI 100
 
 /* define this to indicate your device's keypad */
 #define HAVE_BUTTON_DATA
