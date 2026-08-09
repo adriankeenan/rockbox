@@ -60,14 +60,6 @@ static const struct button_mapping button_context_wps[]  = {
     { ACTION_WPS_SEEKFWD,           BUTTON_RIGHT|BUTTON_REPEAT,     BUTTON_NONE },
     { ACTION_WPS_STOPSEEK,          BUTTON_LEFT|BUTTON_REL,         BUTTON_LEFT|BUTTON_REPEAT },
     { ACTION_WPS_STOPSEEK,          BUTTON_RIGHT|BUTTON_REL,        BUTTON_RIGHT|BUTTON_REPEAT },
-    { ACTION_WPS_VOLUP,             BUTTON_UP,                      BUTTON_NONE },
-    { ACTION_WPS_VOLUP,             BUTTON_UP|BUTTON_REPEAT,        BUTTON_NONE },
-    { ACTION_WPS_VOLUP,             BUTTON_VOL_UP,                  BUTTON_NONE },
-    { ACTION_WPS_VOLUP,             BUTTON_VOL_UP|BUTTON_REPEAT,    BUTTON_NONE },
-    { ACTION_WPS_VOLDOWN,           BUTTON_DOWN,                    BUTTON_NONE },
-    { ACTION_WPS_VOLDOWN,           BUTTON_DOWN|BUTTON_REPEAT,      BUTTON_NONE },
-    { ACTION_WPS_VOLDOWN,           BUTTON_VOL_DOWN,                BUTTON_NONE },
-    { ACTION_WPS_VOLDOWN,           BUTTON_VOL_DOWN|BUTTON_REPEAT,  BUTTON_NONE },
     { ACTION_WPS_MENU,              BUTTON_MENU|BUTTON_REL,         BUTTON_MENU },
     { ACTION_WPS_CONTEXT,           BUTTON_SELECT|BUTTON_REL,       BUTTON_SELECT },
     { ACTION_WPS_BROWSE,            BUTTON_B|BUTTON_REL,            BUTTON_B },
@@ -84,10 +76,6 @@ static const struct button_mapping button_context_wps[]  = {
 }; /* button_context_wps */
 
 static const struct button_mapping button_context_list[] = {
-    { ACTION_LIST_VOLUP,      BUTTON_VOL_UP,                       BUTTON_NONE },
-    { ACTION_LIST_VOLUP,      BUTTON_VOL_UP|BUTTON_REPEAT,         BUTTON_NONE },
-    { ACTION_LIST_VOLDOWN,    BUTTON_VOL_DOWN,                     BUTTON_NONE },
-    { ACTION_LIST_VOLDOWN,    BUTTON_VOL_DOWN|BUTTON_REPEAT,       BUTTON_NONE },
     { ACTION_LISTTREE_PGUP,   BUTTON_LEFT,                         BUTTON_NONE },
     { ACTION_LISTTREE_PGUP,   BUTTON_LEFT|BUTTON_REPEAT,           BUTTON_NONE },
     { ACTION_LISTTREE_PGDOWN, BUTTON_RIGHT,                        BUTTON_NONE },
@@ -172,10 +160,6 @@ static const struct button_mapping button_context_quickscreen[]  = {
     { ACTION_QS_LEFT,       BUTTON_LEFT|BUTTON_REPEAT,          BUTTON_NONE },
     { ACTION_QS_RIGHT,      BUTTON_RIGHT,                       BUTTON_NONE },
     { ACTION_QS_RIGHT,      BUTTON_RIGHT|BUTTON_REPEAT,         BUTTON_NONE },
-    { ACTION_QS_VOLUP,      BUTTON_VOL_UP,                      BUTTON_NONE },
-    { ACTION_QS_VOLUP,      BUTTON_VOL_UP|BUTTON_REPEAT,        BUTTON_NONE },
-    { ACTION_QS_VOLDOWN,    BUTTON_VOL_DOWN,                    BUTTON_NONE },
-    { ACTION_QS_VOLDOWN,    BUTTON_VOL_DOWN|BUTTON_REPEAT,      BUTTON_NONE },
 
     LAST_ITEM_IN_LIST__NEXTLIST(CONTEXT_STD)
 }; /* button_context_quickscreen */
