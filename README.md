@@ -1,22 +1,22 @@
-# Rockbox (adriankeenan fork)
+# Rockbox
 
-Tracks upstream [Rockbox](https://www.rockbox.org/) automatically
-(`.github/workflows/upstream-merge.yml` merges `upstream/master` daily) and
-adds support for handheld targets not in the upstream project.
+My personal fork of [Rockbox](https://www.rockbox.org/).
+
+Includes GitHub actions workflows for producing builds for the targets I use.
+
+Upstream is merged daily.
 
 ## New targets
 
-Fork-specific targets, built as **application ports** rather than
-replacement firmware -- Rockbox runs on top of the device's existing Linux
-CFW and launches like an app instead of replacing the CFW's bootloader/OS.
-Included in the weekly CI build (`.github/workflows/device-build.yml`) and
-buildable locally via `tools/configure --target=<name>`.
+⚠️ New targets have been added using LLMs. While these targets have been tested
+extensively on real hardware, the code changes themselves are largely unreviewed.
+Good luck! 🙏
 
 | Target | `--target=` | CFW |
 |---|---|---|
 | [Anbernic RG35XX Pro](#anbernic-rg35xx-pro) | `rg35xxpro` | KNULLI |
 
-### Anbernic RG35XX Pro
+### Anbernic RG35XX Pro on Knulli
 
 Runs under [KNULLI](https://knulli.org/), installed into `roms/ports` and
 launched from EmulationStation's Ports collection. Quitting returns to
