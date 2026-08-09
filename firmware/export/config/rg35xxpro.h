@@ -65,6 +65,11 @@
 
 #define AB_REPEAT_ENABLE
 
+/* Enables the POWEROFF_BUTTON/POWEROFF_COUNT hold-to-exit handling in
+   firmware/drivers/button.c -- without this, button-target.h's defines are
+   silently compiled out and holding Menu does nothing. */
+#define HAVE_SW_POWEROFF
+
 /* Battery stuff.  The kernel's fuel gauge gives us a percentage directly, so
    no hand-tuned voltage curve (and hence no percent_to_volt_* tables) are
    needed -- see the BATTERY_CAPACITY_DEFAULT guard in firmware/powermgmt.c */
