@@ -8,11 +8,11 @@ on:
         required: false
         default: 'latest'
         type: string
-  # push:
-  #   branches:
-  #     - master
-  #   paths:
-  #     - Dockerfile
+  push:
+    branches:
+      - master
+    paths:
+      - Dockerfile
 
 jobs:
 
@@ -38,4 +38,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/adriankeenan/rockbox-env:${{ inputs.tag }}
+          tags: ghcr.io/adriankeenan/rockbox-env:${{ github.event_name == 'workflow_dispatch' && inputs.tag || 'latest' }}
