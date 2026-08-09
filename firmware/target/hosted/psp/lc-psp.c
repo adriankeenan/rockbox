@@ -18,31 +18,79 @@
  *
  ****************************************************************************/
 
-/* PSPSDK has no dlopen()/dlfcn.h (there is no real dynamic ELF loader on
- * this SDK), so dynamically-loadable codecs and plugins can't be supported
- * this way yet. This stub keeps the core linking against CONFIG_BINFMT ==
- * BINFMT_DLOPEN; lc_open() always fails cleanly rather than crashing.
- * TODO: either write a custom relocating loader (as the CTRU port does via
- * CTRDL) or switch codecs/plugins to be statically linked instead. */
+/* PSPSDK has no dlopen()/dlfcn.h, and psp-gcc's eabi ABI can't generate PIC
+ * code at all, so a real ELF dynamic loader (like CTRU's CTRDL) isn't an
+ * option here. Instead, codecs are linked at a fixed address -- the same
+ * approach every PLATFORM_NATIVE target uses (CONFIG_BINFMT == BINFMT_ROCK,
+ * see the PSP branch in apps/plugins/plugin.lds) -- so loading one is just
+ * a raw read() into memory rather than any real relocation/linking work.
+ * This mirrors firmware/lc-rock.c almost exactly. */
 
-#include <stddef.h>
-
+#include "config.h"
+#include "system.h"
+#include "kernel.h"
+#include "file.h"
 #include "debug.h"
+#include "load_code.h"
 
 void *lc_open(const char *filename, unsigned char *buf, size_t buf_size)
 {
-    (void)buf; (void)buf_size;
-    DEBUGF("lc_open(%s): dynamic loading not supported on PSP\n", filename);
-    return NULL;
-}
+    int fd = open(filename, O_RDONLY);
+    ssize_t read_size;
+    struct lc_header hdr;
+    unsigned char *buf_end = buf + buf_size;
+    off_t copy_size;
 
-void *lc_get_header(void *handle)
-{
-    (void)handle;
-    return NULL;
-}
+    if (fd < 0)
+    {
+        DEBUGF("lc_open: could not open %s\n", filename);
+        goto error;
+    }
 
-void lc_close(void *handle)
-{
-    (void)handle;
+    /* read the header to obtain the load address */
+    read_size = read(fd, &hdr, sizeof(hdr));
+
+    if (read_size < 0)
+    {
+        DEBUGF("lc_open: could not read header from %s\n", filename);
+        goto error_fd;
+    }
+
+    /* hdr.end_addr points to the end of the bss section, but there might
+     * be idata/icode behind that so the bytes to copy can be larger */
+    copy_size = MAX(filesize(fd), hdr.end_addr - hdr.load_addr);
+
+    if (hdr.load_addr < buf || (hdr.load_addr + copy_size) > buf_end)
+    {
+        DEBUGF("lc_open: %s doesn't fit into the codec buffer\n", filename);
+        goto error_fd;
+    }
+
+    /* go back to the beginning to load the whole thing (incl. header) */
+    if (lseek(fd, 0, SEEK_SET) < 0)
+    {
+        DEBUGF("lc_open: lseek failed on %s\n", filename);
+        goto error_fd;
+    }
+
+    /* the header has the address where the code is linked at */
+    read_size = read(fd, hdr.load_addr, copy_size);
+    close(fd);
+
+    if (read_size < 0)
+    {
+        DEBUGF("lc_open: could not read %s\n", filename);
+        goto error;
+    }
+
+    /* the file (built via objcopy -O binary from a NOLOAD .bss section)
+     * only contains .header/.text/.rodata/.data -- codec_start() zeroes
+     * the BSS region itself before the codec's real entry point runs. */
+    commit_discard_idcache();
+    return hdr.load_addr;
+
+error_fd:
+    close(fd);
+error:
+    return NULL;
 }

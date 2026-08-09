@@ -43,6 +43,9 @@ objcopy_plugin = $(objcopy)
 else ifneq (,$(findstring ctru,$(MODELNAME))) 		# 3dsxtool requires symbols
 objcopy = cp $(1) $(1).tmp;mv -f $(1).tmp $(2)
 objcopy_plugin = $(objcopy)
+else ifneq (,$(findstring psp,$(MODELNAME)))
+objcopy = $(OC) -S -x $(1) $(2)				# main binary stays a real ELF (pack-pbp needs it)
+objcopy_plugin = $(OC) -O binary $(1) $(2)		# codecs: raw binary for lc-psp.c's fixed-address loader
 else
   ifdef DEBUG
     objcopy = cp $(1) $(1).tmp;mv -f $(1).tmp $(2)	# objcopy hosted (DEBUG)

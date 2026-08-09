@@ -6,6 +6,13 @@
 #define CONFIG_PLATFORM (PLATFORM_HOSTED|PLATFORM_PSP)
 #define HAVE_FPU
 
+/* PSPSDK has no dlopen()-equivalent and psp-gcc's ABI can't generate PIC
+ * code at all, ruling out the BINFMT_DLOPEN approach every other hosted
+ * target uses. Codecs are instead linked at a fixed address (like native
+ * targets) and loaded with a raw read() into memory -- see lc-psp.c and
+ * the PSP branch in apps/plugins/plugin.lds. */
+#define CONFIG_BINFMT BINFMT_ROCK
+
 /* For Rolo and boot loader */
 #define MODEL_NUMBER  126
 #define MODEL_NAME    "Sony PSP"
