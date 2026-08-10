@@ -510,6 +510,13 @@
 #define UI_LCD_POSX                 64
 #define UI_LCD_POSY                 78
 
+#elif defined(RG35XX_PRO)
+#define UI_TITLE                    "Anbernic RG35XX Pro"
+#define UI_WIDTH                    320
+#define UI_HEIGHT                   240
+#define UI_LCD_POSX                 0
+#define UI_LCD_POSY                 0
+
 
 #elif defined(HIBY_R3PROII)
 #define UI_TITLE                    "Hiby R3 Pro II"

@@ -236,6 +236,102 @@ static void mouse_event(SDL_MouseButtonEvent *event, bool button_up)
 #undef SQUARE
 }
 
+#ifdef HAVE_SDL_JOYSTICK
+/* Some targets (e.g. handhelds running a Linux CFW) expose their built-in
+   controls as an evdev gamepad rather than as keyboard keys, so SDL reports
+   them as joystick events.  The target supplies the mapping onto the Rockbox
+   button bitmap; the bookkeeping below is generic. */
+
+/* how far an axis must travel before it counts as a direction press */
+#define JOY_AXIS_DEADZONE 8000
+#define JOY_MAX_AXES      8
+
+static SDL_Joystick *sdl_joystick = NULL;
+static int joy_last_hat = SDL_HAT_CENTERED;
+/* -1 = past the deadzone negative, 0 = centred, 1 = positive */
+static int joy_last_axis[JOY_MAX_AXES];
+/* what the joystick currently holds down, so a disconnect can release exactly
+   that and leave any keyboard-held buttons alone */
+static int joy_held = 0;
+
+/* Directly update the button state; unlike button_event() there is no key to
+   translate, the target's mapping has already produced a bitmap. */
+static void joy_button_event(int new_btn, bool pressed)
+{
+    if (pressed)
+    {
+        btn |= new_btn;
+        joy_held |= new_btn;
+    }
+    else
+    {
+        btn &= ~new_btn;
+        joy_held &= ~new_btn;
+    }
+}
+
+static void joy_hat_event(int hat_value)
+{
+    int changed = hat_value ^ joy_last_hat;
+
+    if (changed)
+    {
+        joy_button_event(joy_hat_to_button(changed & joy_last_hat), false);
+        joy_button_event(joy_hat_to_button(changed & hat_value), true);
+        joy_last_hat = hat_value;
+    }
+}
+
+static void joy_axis_event(int axis, int value)
+{
+    if (axis < 0 || axis >= JOY_MAX_AXES)
+        return;
+
+    int dir = 0;
+    if (value > JOY_AXIS_DEADZONE)
+        dir = 1;
+    else if (value < -JOY_AXIS_DEADZONE)
+        dir = -1;
+
+    if (dir == joy_last_axis[axis])
+        return;
+
+    if (joy_last_axis[axis])
+        joy_button_event(joy_axis_to_button(axis, joy_last_axis[axis] > 0), false);
+    if (dir)
+        joy_button_event(joy_axis_to_button(axis, dir > 0), true);
+
+    joy_last_axis[axis] = dir;
+}
+
+static void joy_open(int index)
+{
+    if (sdl_joystick)
+        return;
+
+    sdl_joystick = SDL_JoystickOpen(index);
+    if (!sdl_joystick)
+        DEBUGF("SDL_JoystickOpen(%d): %s\n", index, SDL_GetError());
+}
+
+static void joy_close(void)
+{
+    if (!sdl_joystick)
+        return;
+
+    SDL_JoystickClose(sdl_joystick);
+    sdl_joystick = NULL;
+
+    /* Release anything left held down so a disconnect can't wedge a button */
+    joy_last_hat = SDL_HAT_CENTERED;
+    for (int i = 0; i < JOY_MAX_AXES; i++)
+        joy_last_axis[i] = 0;
+
+    btn &= ~joy_held;
+    joy_held = 0;
+}
+#endif /* HAVE_SDL_JOYSTICK */
+
 static bool event_handler(SDL_Event *event)
 {
 #if SDL_MAJOR_VERSION > 1
@@ -286,7 +382,31 @@ static bool event_handler(SDL_Event *event)
         button_event(ev_key, event->type == SDL_KEYDOWN);
         break;
 
+#ifdef HAVE_SDL_JOYSTICK
+    case SDL_JOYBUTTONDOWN:
+    case SDL_JOYBUTTONUP:
+        joy_button_event(joy_to_button(event->jbutton.button),
+                         event->type == SDL_JOYBUTTONDOWN);
+        break;
 
+    case SDL_JOYHATMOTION:
+        joy_hat_event(event->jhat.value);
+        break;
+
+    case SDL_JOYAXISMOTION:
+        joy_axis_event(event->jaxis.axis, event->jaxis.value);
+        break;
+
+#if SDL_MAJOR_VERSION > 1
+    case SDL_JOYDEVICEADDED:
+        joy_open(event->jdevice.which);
+        break;
+
+    case SDL_JOYDEVICEREMOVED:
+        joy_close();
+        break;
+#endif
+#endif /* HAVE_SDL_JOYSTICK */
 
     case SDL_MOUSEMOTION:
     {
@@ -690,6 +810,11 @@ int button_read_device(void)
 
 void button_init_device(void)
 {
+#ifdef HAVE_SDL_JOYSTICK
+    SDL_JoystickEventState(SDL_ENABLE);
+    if (SDL_NumJoysticks() > 0)
+        joy_open(0);
+#endif
 #ifdef SIMULATOR
     if (!sdl_focus_cursor)
         sdl_focus_cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);

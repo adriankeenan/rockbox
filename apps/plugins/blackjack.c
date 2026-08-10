@@ -611,6 +611,22 @@ enum {
 #define BJACK_RIGHT         BUTTON_RIGHT
 #define BJACK_LEFT          BUTTON_LEFT
 
+#elif CONFIG_KEYPAD == RG35XX_PRO_PAD
+#define BJACK_SELECT_NAME   "A"
+#define BJACK_STAY_NAME     "Y"
+#define BJACK_QUIT_NAME     "START"
+#define BJACK_DOUBLE_NAME   "R"
+#define BJACK_SELECT        BUTTON_A
+#define BJACK_QUIT          BUTTON_START
+#define BJACK_MAX           BUTTON_X
+#define BJACK_MIN           BUTTON_B
+#define BJACK_STAY          BUTTON_Y
+#define BJACK_DOUBLEDOWN    BUTTON_R1
+#define BJACK_UP            BUTTON_UP
+#define BJACK_DOWN          BUTTON_DOWN
+#define BJACK_RIGHT         BUTTON_RIGHT
+#define BJACK_LEFT          BUTTON_LEFT
+
 #elif CONFIG_KEYPAD == CTRU_PAD
 #define BJACK_SELECT_NAME   "A"
 #define BJACK_STAY_NAME     "X"

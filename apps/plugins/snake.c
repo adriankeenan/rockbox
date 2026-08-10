@@ -323,6 +323,14 @@ dir is the current direction of the snake - 0=up, 1=right, 2=down, 3=left;
 #define SNAKE_DOWN      BUTTON_DOWN
 #define SNAKE_PLAYPAUSE BUTTON_A
 
+#elif CONFIG_KEYPAD == RG35XX_PRO_PAD
+#define SNAKE_QUIT      BUTTON_START
+#define SNAKE_LEFT      BUTTON_LEFT
+#define SNAKE_RIGHT     BUTTON_RIGHT
+#define SNAKE_UP        BUTTON_UP
+#define SNAKE_DOWN      BUTTON_DOWN
+#define SNAKE_PLAYPAUSE BUTTON_A
+
 #elif CONFIG_KEYPAD == CTRU_PAD
 #define SNAKE_QUIT      BUTTON_BACK
 #define SNAKE_LEFT      BUTTON_LEFT

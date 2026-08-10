@@ -13,60 +13,49 @@ jobs:
       fail-fast: false
       matrix:
         target:
+          # configure_target is tools/configure's modelname string, not the
+          # (unstable) numeric menu id. Toolchains for both are baked into
+          # the container image already, see Dockerfile.
           - name: AIGO Eros Q / K native
-            id: 247
+            configure_target: erosqnative
+            zip_target: zip
+            zip_path: build/rockbox.zip
+          - name: Anbernic RG35XX Pro
+            configure_target: rg35xxpro
+            zip_target: port-zip
+            zip_path: build/rockbox-rg35xxpro.zip
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install toolchain build dependencies
-        run: |
-          apt-get update
-          apt-get install -y --no-install-recommends \
-            libgmp-dev libmpfr-dev libmpc-dev libisl-dev \
-            texinfo automake libtool autoconf flex bison
-
-      - name: Cache cross toolchain
-        id: toolchain-cache
-        uses: actions/cache@v4
-        with:
-          path: /opt/rbtoolchain
-          key: rbtoolchain-mips-${{ hashFiles('tools/rockboxdev.sh', 'tools/toolchain-patches/**') }}
-
-      - name: Build cross toolchain
-        if: steps.toolchain-cache.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p /opt/rbtoolchain
-          RBDEV_PREFIX=/opt/rbtoolchain RBDEV_TARGET=i tools/rockboxdev.sh
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Configure
         env:
-          TARGET_ID: ${{ matrix.target.id }}
+          CONFIGURE_TARGET: ${{ matrix.target.configure_target }}
         run: |
           export PATH="/opt/rbtoolchain/bin:$PATH"
           mkdir build
           cd build
-          ../tools/configure --target="${TARGET_ID}" --type=n
+          ../tools/configure --target="${CONFIGURE_TARGET}" --type=n
 
       - name: Build
         run: |
           export PATH="/opt/rbtoolchain/bin:$PATH"
           cd build
           make -j$(nproc)
-          make zip
+          make ${{ matrix.target.zip_target }}
 
       - name: Get artifact name
         id: build-info
         env:
-          TARGET_ID: ${{ matrix.target.id }}
+          CONFIGURE_TARGET: ${{ matrix.target.configure_target }}
           TARGET_NAME: ${{ matrix.target.name }}
         run: |
-          TARGET_SLUG=$(echo "${TARGET_NAME}" | sed 's/[^a-zA-Z0-9]/-/g' | sed 's/-\+/-/g' | tr '[:upper:]' '[:lower:]')
-          echo "name=rockbox-${TARGET_SLUG}-${TARGET_ID}" >> "$GITHUB_OUTPUT"
+          echo "name=rockbox-${CONFIGURE_TARGET}" >> "$GITHUB_OUTPUT"
 
       - name: Upload firmware artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ steps.build-info.outputs.name }}
-          path: build/rockbox.zip
+          path: ${{ matrix.target.zip_path }}
           if-no-files-found: error
+          archive: false

@@ -211,8 +211,9 @@ void sdl_window_setup(void)
     int depth = LCD_DEPTH < 8 ? 16 : LCD_DEPTH;
     Uint32 flags = SDL_WINDOW_ALLOW_HIGHDPI;
 
-#if 0
-    /* Fullscreen mode might be desired */
+#if defined(RG35XX_PRO) && !defined(SIMULATOR)
+    /* Running on the device itself: the LCD size matches the panel, so this
+       is a 1:1 fullscreen surface with no scaling involved */
     flags |= SDL_WINDOW_FULLSCREEN;
 #else
     if (display_zoom == 1)
@@ -230,6 +231,16 @@ void sdl_window_setup(void)
         panicf("%s", SDL_GetError());
     if ((sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_RENDERER_PRESENTVSYNC)) == NULL)
         panicf("%s", SDL_GetError());
+
+#if defined(RG35XX_PRO) && !defined(SIMULATOR)
+    /* We render at 320x240 (see config/rg35xxpro.h) for theme compatibility,
+       but the panel is 640x480. SDL_RenderSetLogicalSize() (called on every
+       rebuild in rebuild_gui_texture()) scales the 320x240 output to fill
+       the window; forcing integer-only scaling here keeps that at a clean
+       2x rather than any fractional factor SDL would otherwise be free to
+       pick. Renderer-level setting, so this only needs setting once. */
+    SDL_RenderSetIntegerScale(sdlRenderer, SDL_TRUE);
+#endif
 
     /* Surface for LCD content only. Needs to fit largest LCD */
     if ((sim_lcd_surface = SDL_CreateRGBSurface(0,

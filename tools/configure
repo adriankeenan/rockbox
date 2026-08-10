@@ -877,6 +877,76 @@ rgnanocc () {
     rbdir="/FunKey/.rockbox"
 }
 
+# Fatal only for device builds -- simulator builds replace the entire toolchain
+# in simcc() further down, and the build type is not known yet at this point.
+# rg35xxpro_sdk_check() below raises the error once it is.
+rg35xxpro_sdk_missing=
+
+rg35xxpro_sdk_check () {
+    if [ -n "$rg35xxpro_sdk_missing" ] && [ "yes" != "$simulator" ]; then
+        echo "ERROR: You need an aarch64 buildroot SDK for the KNULLI/H700 devices"
+        echo "installed, and the RG35XXPRO_SDK_PATH environment variable pointing"
+        echo "at the root directory of that SDK (the directory containing bin/ and"
+        echo "aarch64-buildroot-linux-gnu/sysroot/)."
+        echo "e.g. https://github.com/simotek/rg35xx-plus-aarch64-SDL2-SDK"
+        echo ""
+        echo "$rg35xxpro_sdk_missing"
+        exit 1
+    fi
+}
+
+rg35xxprocc () {
+    if [ -z "$RG35XXPRO_SDK_PATH" ]; then
+        rg35xxpro_sdk_missing="RG35XXPRO_SDK_PATH is not set."
+        return
+    fi
+
+    sdkprefix="$RG35XXPRO_SDK_PATH/bin/aarch64-buildroot-linux-gnu-"
+    sdksysroot="$RG35XXPRO_SDK_PATH/aarch64-buildroot-linux-gnu/sysroot"
+
+    if [ ! -x "${sdkprefix}gcc" ]; then
+        rg35xxpro_sdk_missing="${sdkprefix}gcc not found or not executable."
+        return
+    fi
+
+    # sdl-app builds force arch="none" later on, so no aarch64-specific code
+    # paths are taken; this is a plain C build.
+    arch="arm"
+    arch_version="8"
+    arch_profile="application"
+
+    CC=${sdkprefix}gcc
+    CPP=${sdkprefix}cpp
+    LD=${sdkprefix}ld
+    AR=${sdkprefix}gcc-ar
+    AS=${sdkprefix}as
+    OC=${sdkprefix}objcopy
+    RANLIB=${sdkprefix}gcc-ranlib
+
+    GCCOPTS=`echo $CCOPTS | sed -e s/\ -ffreestanding// -e s/\ -nostdlib//`
+
+    if [ "yes" = "$use_debug" ]; then
+        GCCOPTS=`echo $GCCOPTS | sed -e s/\ -Os/\ -Og/`
+    fi
+
+    GCCOPTS="$GCCOPTS -fno-builtin -g -Wno-unused-result"
+    GCCOPTS="$GCCOPTS -I$sdksysroot/usr/include/SDL2"
+    GCCOPTS="$GCCOPTS -D_GNU_SOURCE=1 -D_REENTRANT"
+
+    SHARED_LDFLAGS="-shared"
+    SHARED_CFLAGS="-fPIC -fvisibility=hidden"
+
+    LDOPTS="-lm -ldl $LDOPTS -L$sdksysroot/usr/lib -lSDL2 -lpthread"
+    GLOBAL_LDOPTS="$GLOBAL_LDOPTS -Wl,-z,defs"
+
+    thread_support="HAVE_SDL_THREADS"
+    sdl="$sdksysroot/usr/bin/sdl2-config"
+
+    # Installed under roms/ports on the KNULLI SHARE partition, which
+    # PIVOT_ROOT ("/userdata") makes the root of the filesystem Rockbox sees
+    rbdir="/roms/ports/rockbox/.rockbox"
+}
+
 devkitarmcc () {
     if [ -z "$DEVKITPRO" ]; then
         echo "ERROR: You need a devkitPro toolchain and libraries installed"
@@ -1722,7 +1792,7 @@ cat <<EOF
  222) NWZ-E450 series      202) Android (MIPS)   231) 770
  223) NWZ-E460 series      203) Android (x86)    232) 770C
  224) NWZ-E470 series      209) Anbernic RG Nano 233) 800
- 225) NWZ-E580 series                            234) 960
+ 225) NWZ-E580 series      500) RG35XX Pro (WIP) 234) 960
  226) NWZ-A10 series       ==AgpTek==
  227) NW-A20 series        240) Rocker           ==AIGO==
  228) NWZ-A860 series                            245) Eros Q / K (hosted)
@@ -3344,6 +3414,28 @@ fi
     t_model="rgnano"
     ;;
 
+   500|rg35xxpro)
+    target_id=500
+    application="yes"
+    modelname="rg35xxpro"
+    app_type="sdl-app"
+    target="RG35XX_PRO"
+    memory=64
+    uname=`uname`
+    rg35xxprocc
+    tool="cp "
+    boottool="cp "
+    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
+    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
+    output="rockbox"
+    bootoutput="rockbox"
+    appextra="recorder:gui"
+    plugins="yes"
+    t_cpu="hosted"
+    t_manufacturer="anbernic"
+    t_model="rg35xxpro"
+    ;;
+
    210|hifietma9)
     target_id=83
     modelname="hifietma9"
@@ -4448,6 +4540,10 @@ if [ "yes" = "$simulator" ]; then
   fi
 fi
 
+if [ "$modelname" = "rg35xxpro" ]; then
+  rg35xxpro_sdk_check
+fi
+
 # Now, figure out version number of the (gcc) compiler we are about to use
 gccver=`$CC -dumpversion`;
 
@@ -4822,6 +4918,12 @@ if test -n "$t_cpu"; then
   if [ "$simulator" = "yes" ]; then # a few more includes for the sim target tree
     TARGET_INC="$TARGET_INC -I\$(FIRMDIR)/target/hosted/sdl"
     TARGET_INC="$TARGET_INC -I\$(FIRMDIR)/target/hosted"
+  elif [ "$modelname" = "rg35xxpro" ]; then
+    # Unlike rgnano's SDL 1.2, this target uses SDL2, so it also takes the
+    # "SDL_MAJOR_VERSION > 1" branches in firmware/drivers/button.c and
+    # button_queue.c, which bare-include button-sdl.h/window-sdl.h expecting
+    # this directory to be on the search path (as it already is for sims).
+    TARGET_INC="$TARGET_INC -I\$(FIRMDIR)/target/hosted/sdl"
   elif [ "$application" = "yes" ] && [ "$t_manufacturer" = "ctru" ]; then
     TARGET_INC="$TARGET_INC -I\$(FIRMDIR)/target/hosted/ctru/lib"
     TARGET_INC="$TARGET_INC -I\$(FIRMDIR)/target/hosted/ctru/lib/bfile"

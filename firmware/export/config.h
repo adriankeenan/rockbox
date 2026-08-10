@@ -157,6 +157,7 @@
 #define RG_NANO_PAD        77
 #define CTRU_PAD           78
 #define HIBY_R3PROII_PAD   79
+#define RG35XX_PRO_PAD     80
 
 /* CONFIG_REMOTE_KEYPAD */
 #define H100_REMOTE   1
@@ -574,6 +575,8 @@ Lyre prototype 1 */
 #include "config/surfansf28.h"
 #elif defined(RG_NANO)
 #include "config/rgnano.h"
+#elif defined(RG35XX_PRO)
+#include "config/rg35xxpro.h"
 #elif defined(CTRU)
 #include "config/ctru.h"
 #elif defined(HIBY_R3PROII)
