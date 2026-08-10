@@ -1077,8 +1077,20 @@ pspsdkcc () {
     # versions would otherwise win over newlib's real implementations --
     # explicit -lc first makes sure the real ones get resolved before
     # -lpspkernel's objects are ever pulled in.
+    #
+    # -lpspuser must come before -lpspkernel too, and for a similar but
+    # more serious reason: libpspkernel.a's stub objects also bundle
+    # re-exports of many sceKernel* functions (thread/module management,
+    # cache maintenance, ...) that are really meant to be resolved from
+    # the *User* NID library. PPSSPP resolves either variant permissively,
+    # but a real PSP's module loader refuses to satisfy a "ForKernel"
+    # import for an unprivileged (non-kernel-mode) homebrew EBOOT and
+    # fails the whole load with 0x8002013C (LIBRARY_NOTFOUND) -- this
+    # never showed up under PPSSPP-only testing. Linking -lpspuser first
+    # makes sure --allow-multiple-definition picks the correct ForUser
+    # stub whenever both libs define the same symbol name.
     LDOPTS="-L$PSPDEV/psp/sdk/lib -lc -lpspaudiolib -lpspaudio -lpspctrl -lpspgu"
-    LDOPTS="$LDOPTS -lpspgum -lpspdisplay -lpsppower -lpsprtc -lpspkernel -lm"
+    LDOPTS="$LDOPTS -lpspgum -lpspdisplay -lpsppower -lpsprtc -lpspuser -lpspkernel -lm"
 
     GLOBAL_LDOPTS="$GLOBAL_LDOPTS -Wl,--allow-multiple-definition"
 
