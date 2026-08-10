@@ -50,9 +50,9 @@ and `roms/ports/rockbox/`. Launch "Rockbox" from EmulationStation's Ports.
 | Y | Delete bookmark (bookmark screen only) |
 | Menu | Tap: main menu. Hold: exit to EmulationStation |
 | Select | Context menu |
+| Start | Lock keys |
 | L1 | Hotkey / WPS shortcut |
 | R1 | Quickscreen |
-| Start | Lock keys |
 | Vol Up / Vol Down | System-only |
 | Power | System-only |
 | L2, R2, analog stick click | Unbound |
