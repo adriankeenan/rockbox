@@ -95,7 +95,7 @@ target/hosted/sdl/key_to_touch-sdl.c
 #endif
 #ifdef APPLICATION
 target/hosted/sdl/app/load_code-sdl-app.c
-#ifndef RG_NANO
+#if !defined(RG_NANO) && !defined(RG35XX_PRO)
 target/hosted/sdl/app/button-application.c
 #endif
 #ifdef WIN32
@@ -286,6 +286,13 @@ target/hosted/anbernic/instant_play.c
 target/hosted/anbernic/button-rgnano.c
 target/hosted/anbernic/powermgmt-rgnano.c
 #endif /* RG_NANO */
+
+#if defined(RG35XX_PRO) && !defined(SIMULATOR)
+target/hosted/sysfs.c
+target/hosted/power-linux.c
+target/hosted/anbernic/rg35xxpro/button-rg35xxpro.c
+target/hosted/anbernic/rg35xxpro/backlight-rg35xxpro.c
+#endif /* RG35XX_PRO */
 
 /* Common */
 #ifndef BOOTLOADER

@@ -8,7 +8,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     ca-certificates \
     perl \
+    file \
     libsdl-dev \
+    libsdl2-dev \
     gcc-mingw-w64 \
     g++-mingw-w64 \
     bzip2 \
@@ -22,7 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     bison \
     && rm -rf /var/lib/apt/lists/*
 
-ENV SDL2_VERSION=2.32.8
+ENV SDL2_VERSION=2.32.10
 RUN wget https://www.libsdl.org/release/SDL2-${SDL2_VERSION}.tar.gz \
     && tar xzf SDL2-${SDL2_VERSION}.tar.gz \
     && cd SDL2-${SDL2_VERSION} \
@@ -40,3 +42,31 @@ RUN git clone --depth=1 git://git.rockbox.org/rockbox /tmp/rockbox \
     && rm -rf /tmp/rockbox /tmp/rbdev-dl /tmp/rbdev-build
 
 ENV PATH="/opt/rbtoolchain/bin:${PATH}"
+
+# Fetch and relocate the KNULLI aarch64 buildroot SDK for the H700 device
+# family (RG35XX Pro/Plus/H), used for the Anbernic RG35XX Pro application
+# build. Unlike the toolchains above, this isn't built via rockboxdev.sh --
+# it's KNULLI's own published cross-toolchain + sysroot, which is what
+# guarantees the resulting binary links against the same libc/SDL2 that
+# actually ships on the device. libsdl2-dev above additionally lets this
+# target's simulator build natively on the host. relocate-sdk.sh shells out
+# to `file` to tell text files (which need their baked-in old path rewritten)
+# from binaries (which must not be touched); without it (file is not part of
+# Ubuntu's minimal image) it silently no-ops on every file instead of erroring,
+# which only happens not to break tools that self-locate via $0 rather than a
+# fixed path, such as sdl2-config -- hence `file` above.
+ENV RG35XXPRO_SDK_RELEASE=rg35xx-plush-sdk-20240421
+ENV RG35XXPRO_SDK_PATH=/opt/rg35xxpro-sdk/aarch64-buildroot-linux-gnu_sdk-buildroot
+RUN mkdir -p /opt/rg35xxpro-sdk \
+    && wget -q -O /tmp/rg35xxpro-sdk.tar.gz \
+        "https://github.com/knulli-cfw/toolchains/releases/download/${RG35XXPRO_SDK_RELEASE}/aarch64-buildroot-linux-gnu_sdk-buildroot.tar.gz" \
+    && tar xzf /tmp/rg35xxpro-sdk.tar.gz -C /opt/rg35xxpro-sdk \
+    && rm /tmp/rg35xxpro-sdk.tar.gz \
+    && "${RG35XXPRO_SDK_PATH}/relocate-sdk.sh"
+
+# Deliberately not added to PATH: tools/configure's rg35xxprocc() references
+# every tool it needs (gcc, sdl2-config, ...) by absolute path under
+# RG35XXPRO_SDK_PATH already. Putting the SDK's bin/ on PATH shadows the
+# system `perl` with the SDK's own bundled one, which is missing core
+# modules (e.g. List::Util) and breaks tools/multigcc.pl for every target,
+# not just this one.

@@ -482,6 +482,15 @@ static void setoptions (void)
         options.SELECT  = BUTTON_FN;
         options.MENU    = BUTTON_X;
 
+#elif CONFIG_KEYPAD == RG35XX_PRO_PAD
+        options.UP      = BUTTON_UP;
+        options.DOWN    = BUTTON_DOWN;
+        options.A       = BUTTON_A;
+        options.B       = BUTTON_B;
+        options.START   = BUTTON_START;
+        options.SELECT  = BUTTON_FN;
+        options.MENU    = BUTTON_X;
+
 #elif CONFIG_KEYPAD == CTRU_PAD
         options.UP     = BUTTON_UP;
         options.DOWN   = BUTTON_DOWN;

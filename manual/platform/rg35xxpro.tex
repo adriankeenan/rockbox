@@ -1,0 +1,26 @@
+\def\UseOption{rg35xxpro}
+\edef\UseOption{\UseOption,RG35XX_PRO_PAD}
+\edef\UseOption{\UseOption,HAVE_BACKLIGHT}
+\edef\UseOption{\UseOption,rg35xxpro}
+
+\newcommand{\playerman}{Anbernic}
+\newcommand{\playertype}{RG35XX Pro}
+\newcommand{\playerlongtype}{\playertype}
+% Rendered internally at 320x240 (matching common theme resolutions) and
+% integer-upscaled 2x onto the physical 640x480 panel -- this is the
+% resolution actual screenshots and the UI are rendered at.
+\newcommand{\dapdisplaywidth}{320}
+\newcommand{\dapdisplayheight}{240}
+\newcommand{\dapdisplaydepth}{16}
+\newcommand{\specimg}{rg35xxpro}
+%Used to name the player, e.g. ...to the \dap
+\newcommand{\dap}{handheld}
+%For use when referring to the player. E.g. the \daps\ capacity ...
+\newcommand{\daps}{handheld's}
+\newcommand{\firmwarefilename}{\fname{rockbox-rg35xxpro.zip}}
+\newcommand{\firmwareextension}{\fname{zip}}
+\newcommand{\screenshotsize}{8cm}
+\newcommand{\disk}{SD card}
+
+% link external keymap file
+\input{platform/keymap-rg35xxpro.tex}

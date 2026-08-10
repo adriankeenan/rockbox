@@ -518,6 +518,18 @@
 #define FRACTAL_PRECISION_DEC   BUTTON_L
 #define FRACTAL_RESET           BUTTON_A
 
+#elif CONFIG_KEYPAD == RG35XX_PRO_PAD
+#define FRACTAL_QUIT            BUTTON_START
+#define FRACTAL_UP              BUTTON_UP
+#define FRACTAL_DOWN            BUTTON_DOWN
+#define FRACTAL_LEFT            BUTTON_LEFT
+#define FRACTAL_RIGHT           BUTTON_RIGHT
+#define FRACTAL_ZOOM_IN         BUTTON_X
+#define FRACTAL_ZOOM_OUT        BUTTON_B
+#define FRACTAL_PRECISION_INC   BUTTON_R1
+#define FRACTAL_PRECISION_DEC   BUTTON_L1
+#define FRACTAL_RESET           BUTTON_A
+
 #elif CONFIG_KEYPAD == CTRU_PAD
 #define FRACTAL_QUIT            BUTTON_BACK
 #define FRACTAL_UP              BUTTON_UP

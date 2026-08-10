@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!--
+  Gives the Rockbox entry a proper name, icon and description in KNULLI's
+  Ports list instead of showing the bare "rockbox" script filename.
+
+  gamelist.xml is shared by every port installed under roms/ports, so this
+  is only safe to drop in as-is if roms/ports/gamelist.xml doesn't already
+  exist. If it does (because other ports are installed), merge the <game>
+  block below into it by hand instead of overwriting the file. See
+  rg35xxpro.make's "port" target for how this file is produced.
+-->
+<gameList>
+  <game>
+    <path>/userdata/roms/ports/rockbox.sh</path>
+    <name>Rockbox</name>
+    <desc>Rockbox: free replacement firmware/media player, running here as a native application. Browse and play your music library with support for a wide range of audio formats, plugins and games.</desc>
+    <image>./rockbox-icon.png</image>
+  </game>
+</gameList>

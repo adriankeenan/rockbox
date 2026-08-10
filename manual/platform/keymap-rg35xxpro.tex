@@ -1,0 +1,103 @@
+\newcommand{\ButtonPower}{\btnfnt{Power}}
+\newcommand{\ButtonUp}{\btnfnt{Up}}
+\newcommand{\ButtonDown}{\btnfnt{Down}}
+\newcommand{\ButtonLeft}{\btnfnt{Left}}
+\newcommand{\ButtonRight}{\btnfnt{Right}}
+\newcommand{\ButtonA}{\btnfnt{A}}
+\newcommand{\ButtonB}{\btnfnt{B}}
+\newcommand{\ButtonX}{\btnfnt{X}}
+\newcommand{\ButtonY}{\btnfnt{Y}}
+\newcommand{\ButtonLOne}{\btnfnt{L1}}
+\newcommand{\ButtonROne}{\btnfnt{R1}}
+\newcommand{\ButtonLTwo}{\btnfnt{L2}}
+\newcommand{\ButtonRTwo}{\btnfnt{R2}}
+\newcommand{\ButtonSelect}{\btnfnt{Select}}
+\newcommand{\ButtonStart}{\btnfnt{Start}}
+\newcommand{\ButtonMenu}{\btnfnt{Menu}}
+\newcommand{\ButtonFN}{\btnfnt{Function}}
+\newcommand{\ButtonVolUp}{\btnfnt{Vol+}}
+\newcommand{\ButtonVolDown}{\btnfnt{Vol-}}
+\newcommand{\ButtonHold}{\btnfnt{\ButtonFN{} and \ButtonStart}}
+
+%Button actions, standard context
+\newcommand{\ActionStdPrev}{\ButtonUp{}}
+\newcommand{\ActionStdPrevRepeat}{\ButtonUp{}}
+\newcommand{\ActionStdNext}{\ButtonDown{}}
+\newcommand{\ActionStdNextRepeat}{\ButtonDown{}}
+\newcommand{\ActionStdOk}{\ButtonA}
+\newcommand{\ActionStdCancel}{\ButtonB}
+\newcommand{\ActionStdContext}{\ButtonSelect}
+\newcommand{\ActionStdMenu}{\ButtonMenu{}}
+\newcommand{\ActionStdQuickScreen}{\ButtonROne{}}
+
+%Button actions, wps context
+\newcommand{\ActionWpsStop}{Long \ButtonA}
+\newcommand{\ActionWpsBrowse}{\ButtonB}
+\newcommand{\ActionWpsVolUp}{\ButtonUp{} or \ButtonVolUp}
+\newcommand{\ActionWpsVolDown}{\ButtonDown{} or \ButtonVolDown}
+\newcommand{\ActionWpsSkipPrev}{\ButtonLeft}
+\newcommand{\ActionWpsSkipNext}{\ButtonRight}
+\newcommand{\ActionWpsSeekBack}{Long \ButtonLeft}
+\newcommand{\ActionWpsSeekFwd}{Long \ButtonRight}
+\newcommand{\ActionWpsPlay}{\ButtonA{}}
+\newcommand{\ActionWpsContext}{\ButtonSelect}
+\newcommand{\ActionWpsMenu}{\ButtonMenu}
+\newcommand{\ActionWpsQuickScreen}{\ButtonROne}
+\newcommand{\ActionWpsHotkey}{\ButtonLOne{}}
+\newcommand{\ActionWpsPitchScreen}{Long \ButtonROne}
+\newcommand{\ActionWpsIdThreeScreen}{\ButtonX}
+\newcommand{\ActionWpsAbSetBNextDir}{\ButtonFN{} and \ButtonRight}
+\newcommand{\ActionWpsAbSetAPrevDir}{\ButtonFN{} and \ButtonLeft}
+\newcommand{\ActionWpsAbReset}{\ButtonFN{} and \ButtonUp}
+
+%Button actions, quickscreen context
+\newcommand{\ActionQuickScreenExit}{\ButtonB{}}
+
+%Button actions, tree context
+\newcommand{\ActionTreeWps}{\ButtonX}
+\newcommand{\ActionTreeStop}{Long \ButtonLOne}
+\newcommand{\ActionTreeParentDirectory}{\ButtonB}
+\newcommand{\ActionTreeEnter}{\ButtonA}
+\newcommand{\ActionTreeHotkey}{\ButtonLOne{}}
+
+%Button actions, YesNo context
+\newcommand{\ActionYesNoAccept}{\ButtonA{}}
+
+%Button actions, Virtual Keyboard Context
+\newcommand{\ActionKbdSelect}{\ButtonA}
+\newcommand{\ActionKbdUp}{\ButtonUp}
+\newcommand{\ActionKbdDown}{\ButtonDown}
+\newcommand{\ActionKbdLeft}{\ButtonLeft}
+\newcommand{\ActionKbdRight}{\ButtonRight}
+\newcommand{\ActionKbdPageFlip}{\ButtonX}
+\newcommand{\ActionKbdDone}{\ButtonStart}
+\newcommand{\ActionKbdAbort}{\ButtonB}
+\newcommand{\ActionKbdCursorLeft}{\ButtonLOne}
+\newcommand{\ActionKbdCursorRight}{\ButtonROne}
+\newcommand{\ActionKbdBackSpace}{\ButtonY}
+
+%Button actions, Pitch Screen context
+\newcommand{\ActionPsToggleMode}{\ButtonA}
+\newcommand{\ActionPsIncSmall}{\ButtonUp{}}
+\newcommand{\ActionPsDecSmall}{\ButtonDown{}}
+\newcommand{\ActionPsIncBig}{Long \ButtonUp}
+\newcommand{\ActionPsDecBig}{Long \ButtonDown}
+\newcommand{\ActionPsNudgeLeft}{\ButtonLeft}
+\newcommand{\ActionPsNudgeRight}{\ButtonRight}
+\newcommand{\ActionPsReset}{\ButtonY}
+\newcommand{\ActionPsExit}{\ButtonB}
+\newcommand{\ActionPsFaster}{Long \ButtonRight}
+\newcommand{\ActionPsSlower}{Long \ButtonLeft}
+
+%Button actions, Bookmark screen context
+\newcommand{\ActionBmDelete}{\ButtonY}
+
+%Plugin lib actions
+\newcommand{\PluginUp}{\ButtonUp}
+\newcommand{\PluginDown}{\ButtonDown}
+\newcommand{\PluginLeft}{\ButtonLeft}
+\newcommand{\PluginRight}{\ButtonRight}
+\newcommand{\PluginSelect}{\ButtonA}
+\newcommand{\PluginSelectRepeat}{Long \ButtonA}
+\newcommand{\PluginCancel}{\ButtonB}
+\newcommand{\PluginExit}{\ButtonStart}

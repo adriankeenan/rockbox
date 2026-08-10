@@ -176,6 +176,10 @@ else # core
    include $(ROOTDIR)/packaging/rgnano/rgnano.make
   endif
 
+  ifneq (,$(findstring rg35xxpro, $(MODELNAME)))
+   include $(ROOTDIR)/packaging/rg35xxpro/rg35xxpro.make
+  endif
+
   ifneq (,$(findstring ctru, $(APP_TYPE)))
     include $(ROOTDIR)/packaging/ctru/ctru.make
   endif

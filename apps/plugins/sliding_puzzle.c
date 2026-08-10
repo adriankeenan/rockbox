@@ -368,6 +368,15 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define PUZZLE_SHUFFLE  BUTTON_B
 #define PUZZLE_PICTURE  BUTTON_A
 
+#elif CONFIG_KEYPAD == RG35XX_PRO_PAD
+#define PUZZLE_QUIT     BUTTON_START
+#define PUZZLE_LEFT     BUTTON_LEFT
+#define PUZZLE_RIGHT    BUTTON_RIGHT
+#define PUZZLE_UP       BUTTON_UP
+#define PUZZLE_DOWN     BUTTON_DOWN
+#define PUZZLE_SHUFFLE  BUTTON_B
+#define PUZZLE_PICTURE  BUTTON_A
+
 #elif CONFIG_KEYPAD == CTRU_PAD
 #define PUZZLE_QUIT     BUTTON_BACK
 #define PUZZLE_LEFT     BUTTON_LEFT
@@ -909,6 +918,10 @@ enum plugin_status plugin_start(
         rb->lcd_putsxy(0, 28, "[MODE] shuffle");
         rb->lcd_putsxy(0, 38, "[MENU] change pic");
 #elif CONFIG_KEYPAD == RG_NANO_PAD
+        rb->lcd_putsxy(0, 18, "[Start] to stop");
+        rb->lcd_putsxy(0, 28, "[B] shuffle");
+        rb->lcd_putsxy(0, 38, "[A] change pic");
+#elif CONFIG_KEYPAD == RG35XX_PRO_PAD
         rb->lcd_putsxy(0, 18, "[Start] to stop");
         rb->lcd_putsxy(0, 28, "[B] shuffle");
         rb->lcd_putsxy(0, 38, "[A] change pic");
