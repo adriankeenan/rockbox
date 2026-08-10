@@ -52,7 +52,7 @@ and `roms/ports/rockbox/`. Launch "Rockbox" from EmulationStation's Ports.
 | Select | Context menu |
 | L1 | Hotkey / WPS shortcut |
 | R1 | Quickscreen |
-| Start | Lock keys / Confirm text entry (on-screen keyboard) |
+| Start | Lock keys |
 | Vol Up / Vol Down | System-only |
 | Power | System-only |
 | L2, R2, analog stick click | Unbound |
