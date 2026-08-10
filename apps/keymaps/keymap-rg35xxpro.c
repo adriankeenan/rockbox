@@ -46,7 +46,7 @@ static const struct button_mapping button_context_standard[]  = {
     { ACTION_STD_MENU,          BUTTON_MENU|BUTTON_REL,     BUTTON_MENU },
     { ACTION_STD_CONTEXT,       BUTTON_SELECT|BUTTON_REL,   BUTTON_SELECT },
     { ACTION_STD_QUICKSCREEN,   BUTTON_R1|BUTTON_REL,       BUTTON_R1 },
-    { ACTION_STD_KEYLOCK,       BUTTON_FN|BUTTON_START,     BUTTON_NONE },
+    { ACTION_STD_KEYLOCK,       BUTTON_START|BUTTON_REL,    BUTTON_START },
 
     LAST_ITEM_IN_LIST
 }; /* button_context_standard */
@@ -70,7 +70,7 @@ static const struct button_mapping button_context_wps[]  = {
     { ACTION_WPS_ABSETA_PREVDIR,    BUTTON_FN|BUTTON_LEFT,          BUTTON_NONE },
     { ACTION_WPS_ABSETB_NEXTDIR,    BUTTON_FN|BUTTON_RIGHT,         BUTTON_NONE },
     { ACTION_WPS_ABRESET,           BUTTON_FN|BUTTON_UP,            BUTTON_NONE },
-    { ACTION_STD_KEYLOCK,           BUTTON_FN|BUTTON_START,         BUTTON_NONE },
+    { ACTION_STD_KEYLOCK,           BUTTON_START|BUTTON_REL,        BUTTON_START },
 
     LAST_ITEM_IN_LIST
 }; /* button_context_wps */
