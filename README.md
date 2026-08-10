@@ -15,6 +15,7 @@ Good luck! 🙏
 | Target | `--target=` | CFW |
 |---|---|---|
 | [Anbernic RG35XX Pro](#anbernic-rg35xx-pro) | `rg35xxpro` | KNULLI |
+| [Sony PSP](#sony-psp) | `psp` | Homebrew (CFW/HEN) |
 
 ### Anbernic RG35XX Pro on Knulli
 
@@ -60,3 +61,51 @@ and `roms/ports/rockbox/`. Launch "Rockbox" from EmulationStation's Ports.
 
 Full mapping: `apps/keymaps/keymap-rg35xxpro.c` (actions) and
 `firmware/target/hosted/anbernic/rg35xxpro/button-rg35xxpro.c` (raw indices).
+
+### Sony PSP
+
+Runs as PSP homebrew (PSPSDK/newlib, no dynamic ELF loader available, so
+codecs are linked at a fixed address and loaded with a raw read() instead
+of dlopen -- same scheme as the native, non-`APPLICATION` targets). Ships
+as `EBOOT.PBP`, launched from the XMB via Custom Firmware or a Homebrew
+Enabler, or opened directly in PPSSPP.
+
+**Hardware**
+
+- SoC: Sony/NEC "Allegrex" (MIPS, single core)
+- Screen: 4.3" 480x272. Rockbox renders 320x240 (QVGA, for theme
+  compatibility) unscaled and centered, with black borders on all sides
+  rather than upscaled.
+- Colour depth: 16-bit (RGB565)
+- Audio: pspaudiolib (`sceAudio`). Volume is real: Rockbox's own volume
+  setting drives the audio driver's per-channel hardware gain
+  (`sceAudioChangeChannelVolume`) directly, rather than software mixing.
+- Power: battery percentage and charging state via `scePower`.
+
+**Installation**
+
+Copy the release zip contents onto the memory stick root, giving
+`ms0:/PSP/GAME/ROCKBOX/EBOOT.PBP` alongside its `fonts/`, `themes/`,
+`codecs/`, etc. Launch "Rockbox" from the XMB's Game menu.
+
+**Keymap**
+
+| Button | Action |
+|---|---|
+| D-pad / Analog stick | Navigate / seek / volume (WPS) |
+| Cross | Select / Play-Pause |
+| Circle | Back / Browse (WPS) |
+| Triangle | Menu / context |
+| Square | Hotkey / WPS shortcut |
+| Start | Stop (hold) |
+| Square + Start | Keylock |
+| Home | Hold: power off |
+| L, R, Select | Unbound |
+
+Full mapping: `apps/keymaps/keymap-psp.c`.
+
+**Known limitations**
+
+- Plugins are disabled -- they need per-plugin PSP keymap entries first.
+- Backlight brightness is fixed; `sceDisplaySetBrightness` needs
+  kernel-mode access this SDK doesn't expose.
