@@ -33,7 +33,22 @@
 #include "pcm_mixer.h"
 #include "pcm_sink.h"
 
-static SceUID pcm_mtx;
+/* pcm_mtx has to be reentrant: the generic core's pcm_play_data() (called
+ * from the codec thread to start playback) calls pcm_play_lock() --
+ * sinks[cur_sink]->ops.lock(), i.e. sink_lock() below -- and, while still
+ * holding it, calls sinks[cur_sink]->ops.play() (sink_dma_start()), which
+ * itself calls sink_lock() again from the same thread. A plain
+ * sceKernelCreateSema() semaphore isn't reentrant, so this deadlocked the
+ * calling thread solid the moment playback ever actually started -- same
+ * class of bug as thread-psp.c's reclock and kernel-psp.c's irq_mtx. */
+typedef struct
+{
+    SceUID sema;
+    SceUID owner;
+    int count;
+} psp_pcmlock_t;
+
+static psp_pcmlock_t pcm_mtx;
 
 /* Bytes left in the Rockbox PCM frame buffer. */
 static size_t _pcm_buffer_size = 0;
@@ -42,12 +57,24 @@ static volatile bool _channel_active = false;
 
 static void sink_lock(void)
 {
-    sceKernelWaitSema(pcm_mtx, 1, NULL);
+    SceUID self = sceKernelGetThreadId();
+    if (pcm_mtx.owner == self)
+    {
+        pcm_mtx.count++;
+        return;
+    }
+    sceKernelWaitSema(pcm_mtx.sema, 1, NULL);
+    pcm_mtx.owner = self;
+    pcm_mtx.count = 1;
 }
 
 static void sink_unlock(void)
 {
-    sceKernelSignalSema(pcm_mtx, 1);
+    if (--pcm_mtx.count == 0)
+    {
+        pcm_mtx.owner = -1;
+        sceKernelSignalSema(pcm_mtx.sema, 1);
+    }
 }
 
 static void psp_audio_callback(void *buf, unsigned int reqn, void *pdata)
@@ -86,7 +113,9 @@ static void psp_audio_callback(void *buf, unsigned int reqn, void *pdata)
 
 static void sink_dma_init(void)
 {
-    pcm_mtx = sceKernelCreateSema("rb_pcm_mtx", 0, 1, 1, NULL);
+    pcm_mtx.sema = sceKernelCreateSema("rb_pcm_mtx", 0, 1, 1, NULL);
+    pcm_mtx.owner = -1;
+    pcm_mtx.count = 0;
     pspAudioInit();
 }
 
