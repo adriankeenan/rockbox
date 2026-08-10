@@ -6,6 +6,38 @@ Includes GitHub actions workflows for producing builds for the targets I use.
 
 Upstream is merged daily.
 
+## Building locally
+
+CI builds inside the `ghcr.io/adriankeenan/rockbox-env` container image
+(built from the [`Dockerfile`](Dockerfile)), which already has the
+toolchains for this fork's targets baked in. The easiest way to reproduce a
+build locally is to use the same image:
+
+```sh
+docker run --rm -it -v "$PWD":/rockbox -w /rockbox ghcr.io/adriankeenan/rockbox-env:latest bash
+```
+
+Then, inside the container:
+
+```sh
+mkdir build && cd build
+../tools/configure --target=erosqnative --type=n
+make -j$(nproc)
+make zip
+```
+
+Substitute `--target=rg35xxpro` and `make port-zip` to build the Anbernic
+RG35XX Pro target instead. See `.github/workflows/device-build.yml` for the
+exact `configure_target`/`zip_target` values CI uses for each target.
+
+If you'd rather not pull the prebuilt image, build it locally with
+`docker build -t rockbox-env .` and use that tag instead.
+
+This only covers the container-based flow for this fork's targets. For
+building on bare metal with a manually-installed toolchain, or for targets
+other than the two above, see the upstream instructions in
+[`docs/README`](docs/README).
+
 ## New targets
 
 ⚠️ New targets have been added using LLMs. While these targets have been tested
