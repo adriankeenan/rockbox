@@ -193,7 +193,7 @@ static int codec_load_ram(struct codec_api *api)
 #endif
             )
         || hdr->target_id != TARGET_ID
-#if (CONFIG_PLATFORM & PLATFORM_NATIVE)
+#if (CONFIG_PLATFORM & PLATFORM_NATIVE) || (CONFIG_BINFMT == BINFMT_ROCK)
         || hdr->load_addr != codecbuf
         || hdr->end_addr > codecbuf + CODEC_SIZE
 #endif
@@ -214,7 +214,17 @@ static int codec_load_ram(struct codec_api *api)
         return CODEC_ERROR;
     }
 
-#if (CONFIG_PLATFORM & PLATFORM_NATIVE)
+/* This is really a CONFIG_BINFMT question (BINFMT_ROCK loads the codec's
+ * own code/data/bss directly into codecbuf, so codec_get_buffer_callback()
+ * must not hand out any of that range as "free" scratch space, regardless
+ * of platform) rather than a CONFIG_PLATFORM one -- it happened to be a
+ * correct proxy for it until PSP (PLATFORM_HOSTED) became the first
+ * hosted target to use BINFMT_ROCK. Getting this wrong is silent memory
+ * corruption, not a clean failure: codec_get_buffer_callback() below
+ * would hand back a pointer to the start of codecbuf itself, and whatever
+ * the codec uses that "free" buffer for scribbles over its own just-loaded
+ * code/data/bss. */
+#if (CONFIG_PLATFORM & PLATFORM_NATIVE) || (CONFIG_BINFMT == BINFMT_ROCK)
     codec_size = hdr->end_addr - codecbuf;
 #else
     codec_size = 0;
