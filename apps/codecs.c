@@ -62,7 +62,18 @@
 
 #if (CONFIG_PLATFORM & PLATFORM_HOSTED)
 /* For PLATFORM_HOSTED this buffer must be define here. */
+#if (CONFIG_BINFMT == BINFMT_ROCK)
+/* BINFMT_ROCK codecs are linked at codecbuf's absolute address (discovered
+ * from the main binary at build time), so a .rock file only loads into the
+ * exact build it was produced with -- a mismatched pair fails every codec
+ * load silently, which just looks like "every track skips instantly".
+ * Aligning to CODEC_SIZE pins codecbuf to a round boundary so ordinary
+ * changes elsewhere don't shift it, keeping already-installed codecs
+ * loadable across rebuilds. */
+static unsigned char codecbuf[CODEC_SIZE] __attribute__((aligned(CODEC_SIZE)));
+#else
 static unsigned char codecbuf[CODEC_SIZE];
+#endif
 #else
 /* For PLATFORM_NATIVE this buffer is defined in *.lds files. */
 extern unsigned char codecbuf[];
