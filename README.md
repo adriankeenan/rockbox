@@ -77,9 +77,11 @@ Enabler, or opened directly in PPSSPP.
   compatibility) unscaled and centered, with black borders on all sides
   rather than upscaled.
 - Colour depth: 16-bit (RGB565)
-- Audio: pspaudiolib (`sceAudio`). Volume is real: Rockbox's own volume
-  setting drives the audio driver's per-channel hardware gain
-  (`sceAudioChangeChannelVolume`) directly, rather than software mixing.
+- Audio: pspaudiolib (`sceAudio`). Volume is system-only -- the PSP's own
+  volume keys are handled below Rockbox and own the output level, so
+  Rockbox's per-channel gain is pinned to unity rather than stacking a
+  second attenuation stage on top. The Volume setting still appears in
+  Settings but has no effect.
 - Power: battery percentage and charging state via `scePower`.
 
 **Installation**
@@ -92,7 +94,7 @@ Copy the release zip contents onto the memory stick root, giving
 
 | Button | Action |
 |---|---|
-| D-pad / Analog stick | Navigate / seek / volume (WPS) |
+| D-pad / Analog stick | Navigate / seek |
 | Cross | Select / Play-Pause |
 | Circle | Back / Browse (WPS) |
 | Triangle | Menu / context |
@@ -100,6 +102,7 @@ Copy the release zip contents onto the memory stick root, giving
 | Start | Stop (hold) |
 | Square + Start | Keylock |
 | Home | Hold: power off |
+| Volume Up / Volume Down | System-only |
 | L, R, Select | Unbound |
 
 Full mapping: `apps/keymaps/keymap-psp.c`.

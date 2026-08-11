@@ -90,10 +90,10 @@ static const struct button_mapping button_context_wps[]  = {
     { ACTION_WPS_SEEKFWD,        BUTTON_RIGHT|BUTTON_REPEAT,    BUTTON_NONE },
     { ACTION_WPS_STOPSEEK,       BUTTON_RIGHT|BUTTON_REL,       BUTTON_RIGHT|BUTTON_REPEAT },
 
-    { ACTION_WPS_VOLUP,          BUTTON_UP|BUTTON_REPEAT,       BUTTON_NONE },
-    { ACTION_WPS_VOLUP,          BUTTON_UP,                     BUTTON_NONE },
-    { ACTION_WPS_VOLDOWN,        BUTTON_DOWN|BUTTON_REPEAT,     BUTTON_NONE },
-    { ACTION_WPS_VOLDOWN,        BUTTON_DOWN,                   BUTTON_NONE },
+    /* No volume bindings: the PSP's own volume keys are handled by the
+       system and own the output level, so Rockbox's gain is pinned to
+       unity (see drivers/audio/psp.c). Binding Up/Down here would only
+       drive a setting that no longer changes what you hear. */
 
     LAST_ITEM_IN_LIST
 }; /* button_context_wps */

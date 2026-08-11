@@ -18,36 +18,35 @@
  *
  ****************************************************************************/
 
-#include <math.h>
 #include <pspaudiolib.h>
 
 #include "config.h"
 #include "sound.h"
 
-/* PSP has no real hardware audio codec chip (pspaudiolib talks straight to
- * sceAudio), but sceAudioChangeChannelVolume() (wrapped here as
- * pspAudioSetVolume()) gives the audio driver/hardware a real per-channel
- * gain control -- so, unlike CTRU (which has no such API for NDSP and
- * stays a true no-op), volume here can be delegated to the platform
- * instead of scaling PCM samples ourselves in psp_audio_callback().
+/* PSP has no real hardware audio codec chip -- pspaudiolib talks straight
+ * to sceAudio -- so the only gain stage Rockbox could drive here is
+ * sceAudioChangeChannelVolume() (wrapped as pspAudioSetVolume()), a
+ * per-channel digital attenuation applied to our own output before it ever
+ * reaches the output amplifier.
  *
- * Rockbox passes vol_l/vol_r in centibels (tenths of a dB); sdl_codec.h's
- * AUDIOHW_SETTING(VOLUME, ...) gives us a -80..0dB range. pspAudioSetVolume
- * wants a raw linear 0..PSP_VOLUME_MAX gain, so convert via the standard
- * dB-to-amplitude relation: gain = PSP_VOLUME_MAX * 10^(dB/20), and since
- * vol_cb is in tenths of a dB, dB/20 == vol_cb/200. */
-static int cb_to_psp_gain(int vol_cb)
-{
-    if (vol_cb <= -800)
-        return 0;
-    if (vol_cb >= 0)
-        return PSP_VOLUME_MAX;
-
-    return (int)(PSP_VOLUME_MAX * powf(10.0f, vol_cb / 200.0f));
-}
-
+ * The PSP's physical volume keys are handled by the system below that
+ * point and are the user's normal, muscle-memory volume control, so the
+ * system volume is the single source of truth. Attenuating in the channel
+ * gain as well would stack a second, independent stage on top of it: it
+ * throws away bits of the signal before the system stage rather than
+ * making anything louder, and leaves the same perceived loudness
+ * reachable from two different controls. Pin our stage to unity and let
+ * the OS own volume instead -- same reasoning as RG35XX_PRO in
+ * drivers/audio/sdl.c, which defers to KNULLI's volume daemon.
+ *
+ * The Volume setting still exists in Settings (it comes from
+ * sdl_codec.h's AUDIOHW_SETTING list) but is deliberately inert; the WPS
+ * volume key bindings were dropped from keymap-psp.c to match. */
 void audiohw_set_volume(int vol_l, int vol_r)
 {
+    (void)vol_l;
+    (void)vol_r;
+
     /* Channel 0 is the only channel pcm-psp.c ever reserves. */
-    pspAudioSetVolume(0, cb_to_psp_gain(vol_l), cb_to_psp_gain(vol_r));
+    pspAudioSetVolume(0, PSP_VOLUME_MAX, PSP_VOLUME_MAX);
 }
