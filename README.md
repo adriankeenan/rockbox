@@ -64,25 +64,25 @@ and `roms/ports/rockbox/`. Launch "Rockbox" from EmulationStation's Ports.
 
 ### Sony PSP
 
-Runs as PSP homebrew (PSPSDK/newlib, no dynamic ELF loader available, so
-codecs are linked at a fixed address and loaded with a raw read() instead
-of dlopen -- same scheme as the native, non-`APPLICATION` targets). Ships
-as `EBOOT.PBP`, launched from the XMB via Custom Firmware or a Homebrew
-Enabler, or opened directly in PPSSPP.
+Runs as PSP homebrew, installed into `PSP/GAME` and launched from the XMB's
+Game menu. Needs Custom Firmware or a Homebrew Enabler; also runs directly
+in PPSSPP.
 
 **Hardware**
 
 - SoC: Sony/NEC "Allegrex" (MIPS, single core)
-- Screen: 4.3" 480x272. Rockbox renders 320x240 (QVGA, for theme
+- Screen: 4.3" 480x272. Rockbox renders at 320x240 (QVGA, for theme
   compatibility) unscaled and centered, with black borders on all sides
   rather than upscaled.
 - Colour depth: 16-bit (RGB565)
-- Audio: pspaudiolib (`sceAudio`). Volume is system-only -- the PSP's own
-  volume keys are handled below Rockbox and own the output level, so
-  Rockbox's per-channel gain is pinned to unity rather than stacking a
-  second attenuation stage on top. The Volume setting still appears in
-  Settings but has no effect.
-- Power: battery percentage and charging state via `scePower`.
+- Audio: pspaudiolib (`sceAudio`). Volume handled by the system, rockbox
+  output set to 100% and volume keys mapped out. Internal speaker and 3.5mm
+  jack work without issues.
+- Power: battery percentage and charging state read via `scePower`.
+
+**Known issues**
+
+- Plugins are disabled -- they need per-plugin PSP keymap entries first.
 
 **Installation**
 
@@ -104,9 +104,3 @@ Copy the release zip contents onto the memory stick root, giving
 | Home | Hold: power off |
 | Volume Up / Volume Down | System-only |
 | L, R, Select | Unbound |
-
-Full mapping: `apps/keymaps/keymap-psp.c`.
-
-**Known limitations**
-
-- Plugins are disabled -- they need per-plugin PSP keymap entries first.
