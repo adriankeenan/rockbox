@@ -27,8 +27,12 @@ make zip
 ```
 
 Substitute `--target=rg35xxpro` and `make port-zip` to build the Anbernic
-RG35XX Pro target instead. See `.github/workflows/device-build.yml` for the
-exact `configure_target`/`zip_target` values CI uses for each target.
+RG35XX Pro target instead. See
+[`.github/workflows/device-build.yml`](.github/workflows/device-build.yml)
+for the exact `configure_target`/`zip_target` values CI uses for each
+target, and
+[`.github/workflows/build-image.yml`](.github/workflows/build-image.yml)
+for how the container image itself is built and published.
 
 ## New targets
 
