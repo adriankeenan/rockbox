@@ -11,6 +11,15 @@ PSP_EBOOT_TITLE := Rockbox
 SFO_PATH  := $(BUILDDIR)/PARAM.SFO
 EBOOT_PBP := $(BUILDDIR)/EBOOT.PBP
 
+# XMB artwork: ICON0 is the 144x80 entry icon in the Game list, PIC1 the
+# 480x272 wallpaper shown while the entry is highlighted. Both are checked
+# in pre-rendered; res/make-art.py regenerates them from the official
+# docs/logo/*.svg artwork (needs ImageMagick + Pillow, so it is not wired
+# into the build).
+PSP_RESDIR := $(ROOTDIR)/packaging/psp/res
+PSP_ICON0  := $(PSP_RESDIR)/ICON0.PNG
+PSP_PIC1   := $(PSP_RESDIR)/PIC1.PNG
+
 .SECONDEXPANSION:
 
 $(BUILDDIR)/$(BINARY): $$(OBJ) $(FIRMLIB) $(VOICESPEEXLIB) $(CORE_LIBS)
@@ -21,8 +30,11 @@ $(BUILDDIR)/$(BINARY): $$(OBJ) $(FIRMLIB) $(VOICESPEEXLIB) $(CORE_LIBS)
 $(SFO_PATH):
 	$(MKSFOEX) '$(PSP_EBOOT_TITLE)' $@
 
-$(EBOOT_PBP): $(BUILDDIR)/$(BINARY) $(SFO_PATH)
-	$(PACK_PBP) $@ $(SFO_PATH) NULL NULL NULL NULL NULL $(BUILDDIR)/$(BINARY) NULL
+# pack-pbp argument order is fixed:
+#   PARAM.SFO ICON0.PNG ICON1.PMF PIC0.PNG PIC1.PNG SND0.AT3 DATA.PSP DATA.PSAR
+$(EBOOT_PBP): $(BUILDDIR)/$(BINARY) $(SFO_PATH) $(PSP_ICON0) $(PSP_PIC1)
+	$(PACK_PBP) $@ $(SFO_PATH) $(PSP_ICON0) NULL NULL $(PSP_PIC1) NULL \
+		$(BUILDDIR)/$(BINARY) NULL
 
 # --- Codec loading (CONFIG_BINFMT == BINFMT_ROCK) ---
 # PSPSDK has no dlopen()-equivalent, so codecs are linked at a fixed
