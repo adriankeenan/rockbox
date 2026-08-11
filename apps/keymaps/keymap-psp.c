@@ -90,6 +90,16 @@ static const struct button_mapping button_context_wps[]  = {
     { ACTION_WPS_SEEKFWD,        BUTTON_RIGHT|BUTTON_REPEAT,    BUTTON_NONE },
     { ACTION_WPS_STOPSEEK,       BUTTON_RIGHT|BUTTON_REL,       BUTTON_RIGHT|BUTTON_REPEAT },
 
+    /* Shoulder triggers seek within the current track: hold to scan,
+       release to stop. Seek only -- track skipping stays on the D-pad,
+       so unlike the entries above there is no plain-release binding and
+       a short tap does nothing. */
+    { ACTION_WPS_SEEKBACK,       BUTTON_L|BUTTON_REPEAT,        BUTTON_NONE },
+    { ACTION_WPS_STOPSEEK,       BUTTON_L|BUTTON_REL,           BUTTON_L|BUTTON_REPEAT },
+
+    { ACTION_WPS_SEEKFWD,        BUTTON_R|BUTTON_REPEAT,        BUTTON_NONE },
+    { ACTION_WPS_STOPSEEK,       BUTTON_R|BUTTON_REL,           BUTTON_R|BUTTON_REPEAT },
+
     /* No volume bindings: the PSP's own volume keys are handled by the
        system and own the output level, so Rockbox's gain is pinned to
        unity (see drivers/audio/psp.c). Binding Up/Down here would only

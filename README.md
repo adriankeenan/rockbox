@@ -102,5 +102,6 @@ Copy the release zip contents onto the memory stick root, giving
 | Start | Stop (hold) |
 | Square + Start | Keylock |
 | Home | Hold: power off |
+| L / R | Hold: seek back / forward (WPS) |
 | Volume Up / Volume Down | System-only |
-| L, R, Select | Unbound |
+| Select | Unbound |
