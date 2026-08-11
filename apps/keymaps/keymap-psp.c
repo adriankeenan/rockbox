@@ -90,13 +90,13 @@ static const struct button_mapping button_context_wps[]  = {
     { ACTION_WPS_SEEKFWD,        BUTTON_RIGHT|BUTTON_REPEAT,    BUTTON_NONE },
     { ACTION_WPS_STOPSEEK,       BUTTON_RIGHT|BUTTON_REL,       BUTTON_RIGHT|BUTTON_REPEAT },
 
-    /* Shoulder triggers seek within the current track: hold to scan,
-       release to stop. Seek only -- track skipping stays on the D-pad,
-       so unlike the entries above there is no plain-release binding and
-       a short tap does nothing. */
+    /* The shoulder triggers duplicate D-pad Left/Right here: tap to skip
+       track, hold to seek, release to stop seeking. */
+    { ACTION_WPS_SKIPPREV,       BUTTON_L|BUTTON_REL,           BUTTON_L },
     { ACTION_WPS_SEEKBACK,       BUTTON_L|BUTTON_REPEAT,        BUTTON_NONE },
     { ACTION_WPS_STOPSEEK,       BUTTON_L|BUTTON_REL,           BUTTON_L|BUTTON_REPEAT },
 
+    { ACTION_WPS_SKIPNEXT,       BUTTON_R|BUTTON_REL,           BUTTON_R },
     { ACTION_WPS_SEEKFWD,        BUTTON_R|BUTTON_REPEAT,        BUTTON_NONE },
     { ACTION_WPS_STOPSEEK,       BUTTON_R|BUTTON_REL,           BUTTON_R|BUTTON_REPEAT },
 
