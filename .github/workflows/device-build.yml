@@ -24,6 +24,12 @@ jobs:
             configure_target: rg35xxpro
             zip_target: port-zip
             zip_path: build/rockbox-rg35xxpro.zip
+          # Plain `zip` already lays out PSP/GAME/ROCKBOX/ with EBOOT.PBP
+          # alongside codecs/, so no target-specific packaging step is needed.
+          - name: Sony PSP
+            configure_target: psp
+            zip_target: zip
+            zip_path: build/rockbox.zip
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

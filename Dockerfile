@@ -1,7 +1,23 @@
+# pspdev only publishes an Alpine (musl) toolchain image, so its binaries
+# can't link against this image's glibc. Stage it here to pull out the
+# toolchain plus the handful of musl libraries cc1 needs; everything else
+# in the Alpine image is left behind.
+FROM ghcr.io/pspdev/pspdev:v20260801 AS pspdev
+RUN mkdir -p /pspdev-musl \
+    && for lib in libgmp.so.10 libmpfr.so.6 libmpc.so.3; do \
+         src="$(find /usr/lib /lib -name "$lib" | head -n 1)"; \
+         if [ -z "$src" ]; then \
+             echo "PSP toolchain: $lib missing from upstream image" >&2; \
+             exit 1; \
+         fi; \
+         cp -L "$src" /pspdev-musl/; \
+       done
+
 FROM ubuntu:latest
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    musl \
     make \
     zip \
     wget \
@@ -70,3 +86,33 @@ RUN mkdir -p /opt/rg35xxpro-sdk \
 # system `perl` with the SDK's own bundled one, which is missing core
 # modules (e.g. List::Util) and breaks tools/multigcc.pl for every target,
 # not just this one.
+
+# PSPSDK toolchain for the Sony PSP application build, taken from the
+# pspdev stage above. The tree is relocatable (gcc resolves its own
+# libexec/ and lib/ relative to argv[0]), so /opt/pspdev works despite the
+# image having built it at /usr/local/pspdev. The `musl` package above
+# supplies /lib/ld-musl-x86_64.so.1, the interpreter these binaries name.
+COPY --from=pspdev /usr/local/pspdev /opt/pspdev
+COPY --from=pspdev /pspdev-musl /opt/pspdev-musl
+
+# cc1/cc1plus additionally need musl builds of libgmp/libmpfr/libmpc, which
+# are ABI-incompatible with the glibc copies the mipsel toolchain's own cc1
+# links against. Reaching them via a global LD_LIBRARY_PATH would therefore
+# break every other target, so wrap each tool in a script that scopes the
+# variable to that one invocation (child cc1 inherits it from psp-gcc).
+RUN mv /opt/pspdev/bin /opt/pspdev/bin-real \
+    && mkdir /opt/pspdev/bin \
+    && for real in /opt/pspdev/bin-real/*; do \
+         wrapper="/opt/pspdev/bin/$(basename "$real")"; \
+         printf '#!/bin/sh\nexport LD_LIBRARY_PATH="/opt/pspdev-musl${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"\nexec "%s" "$@"\n' \
+             "$real" > "$wrapper"; \
+         chmod +x "$wrapper"; \
+       done \
+    && /opt/pspdev/bin/psp-gcc --version > /dev/null
+
+# tools/configure's pspsdkcc() and packaging/psp/psp.make both key off
+# PSPDEV; the latter puts $PSPDEV/bin on PATH itself, but the psp-* names
+# are distinctive enough to expose globally too (nothing here shadows a
+# host tool, unlike the RG35XX Pro SDK above).
+ENV PSPDEV=/opt/pspdev
+ENV PATH="/opt/pspdev/bin:${PATH}"
