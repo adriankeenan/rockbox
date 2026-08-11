@@ -44,18 +44,24 @@ jobs:
           make -j$(nproc)
           make ${{ matrix.target.zip_target }}
 
-      - name: Get artifact name
+      - name: Name artifact
         id: build-info
         env:
           CONFIGURE_TARGET: ${{ matrix.target.configure_target }}
-          TARGET_NAME: ${{ matrix.target.name }}
+          ZIP_PATH: ${{ matrix.target.zip_path }}
+          TZ: UTC
         run: |
-          echo "name=rockbox-${CONFIGURE_TARGET}" >> "$GITHUB_OUTPUT"
+          commit_datetime="$(git log -1 --format=%cd --date=format-local:%Y%m%dT%H%M%SZ)"
+          commit_id="$(git rev-parse --verify --short=10 HEAD)"
+          name="rockbox-${CONFIGURE_TARGET}-${commit_datetime}-${commit_id}.zip"
+          mv "${ZIP_PATH}" "build/${name}"
+          echo "name=${name}" >> "$GITHUB_OUTPUT"
+          echo "path=build/${name}" >> "$GITHUB_OUTPUT"
 
       - name: Upload firmware artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ steps.build-info.outputs.name }}
-          path: ${{ matrix.target.zip_path }}
+          path: ${{ steps.build-info.outputs.path }}
           if-no-files-found: error
           archive: false
