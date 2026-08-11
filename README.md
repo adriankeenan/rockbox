@@ -110,5 +110,3 @@ Full mapping: `apps/keymaps/keymap-psp.c`.
 **Known limitations**
 
 - Plugins are disabled -- they need per-plugin PSP keymap entries first.
-- Backlight brightness is fixed; `sceDisplaySetBrightness` needs
-  kernel-mode access this SDK doesn't expose.
