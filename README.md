@@ -4,7 +4,12 @@ My personal fork of [Rockbox](https://www.rockbox.org/).
 
 Includes GitHub actions workflows for producing builds for the targets I use.
 
-Upstream is merged daily.
+Upstream is merged daily. If the merge conflicts, the conflicted merge is
+committed as-is (conflict markers and all) and pushed to an `upstream-merge`
+branch, and the workflow refuses to run again while that branch exists. To
+recover: check out `upstream-merge`, fix the conflicts and amend the merge
+commit, merge the branch into `master`, delete the branch, then re-run the
+workflow.
 
 ## Building locally
 
