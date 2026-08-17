@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: 'Dry run - fetch and check for conflicts but do not push'
+        description: 'Dry run - fetch and merge but do not push anything'
         required: false
         default: 'false'
         type: boolean
@@ -19,6 +19,10 @@ jobs:
     name: Merge upstream/master into fork master
     runs-on: ubuntu-latest
 
+    env:
+      MERGE_BRANCH: upstream-merge
+      DRY_RUN: ${{ github.event.inputs.dry_run == 'true' }}
+
     steps:
       - name: Checkout fork master
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -26,6 +30,13 @@ jobs:
           ref: master
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+
+      - name: Check for unresolved merge branch
+        run: |
+          if git ls-remote --exit-code --heads origin "refs/heads/$MERGE_BRANCH" >/dev/null; then
+            echo "::error::'$MERGE_BRANCH' already exists - a previous merge is unresolved. Resolve it, merge it into master, delete the branch, then re-run."
+            exit 1
+          fi
 
       - name: Configure git identity
         run: |
@@ -39,13 +50,23 @@ jobs:
         run: git fetch upstream master --no-tags
 
       - name: Merge upstream/master
+        id: merge
         run: |
-          if ! git merge upstream/master --no-edit --no-ff; then
-            git merge --abort
-            echo "::error::Merge conflict with upstream/master. Resolve manually and push."
-            exit 1
+          if git merge upstream/master --no-edit --no-ff; then
+            exit 0
           fi
 
+          # Commit the conflicted tree - markers and all - so the next step can
+          # push it and it can be inspected from a normal checkout.
+          git add -A
+          git commit -m "Merge upstream/master (unresolved conflicts)"
+          echo "::error::Merge conflict - see branch '$MERGE_BRANCH'. Resolve it, merge it into master, delete the branch, then re-run."
+          exit 1
+
       - name: Push merged master
-        if: github.event.inputs.dry_run != 'true'
+        if: env.DRY_RUN != 'true'
         run: git push origin master
+
+      - name: Push conflicted merge
+        if: failure() && steps.merge.conclusion == 'failure' && env.DRY_RUN != 'true'
+        run: git push origin "HEAD:$MERGE_BRANCH"
