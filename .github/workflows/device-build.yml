@@ -28,6 +28,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # This job runs in a container, so git sees a workspace owned by the
+      # runner's uid while running as root and refuses it as "dubious
+      # ownership". Steps below shell out to git, which fails without this.
+      - name: Mark the workspace safe for git
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       - name: Configure
         env:
           CONFIGURE_TARGET: ${{ matrix.target.configure_target }}
