@@ -1883,7 +1883,7 @@ cat <<EOF
  290) Nintendo 3DS (WIP)
 
  ==Sony==
- 310) Sony PSP (WIP)
+ 501) Sony PSP (WIP)
 
 EOF
 
@@ -3489,7 +3489,10 @@ fi
     ;;
 
    500|rg35xxpro)
-    target_id=500
+    # Fork-reserved target_id range (250-255), not 500: genlang writes
+    # TARGET_ID as a single byte into every .lng header, so anything over
+    # 255 silently breaks language loading.  See firmware/export/config.h.
+    target_id=250
     application="yes"
     modelname="rg35xxpro"
     app_type="sdl-app"
@@ -4342,8 +4345,11 @@ fi
     t_model="app"
     ;;
 
-    310|psp)
-    target_id=125
+    501|psp)
+    # Fork-reserved target_id range (250-255), not 501: genlang writes
+    # TARGET_ID as a single byte into every .lng header, so anything over
+    # 255 silently breaks language loading.  See firmware/export/config.h.
+    target_id=251
     application="yes"
     modelname="psp"
     app_type="psp-app"

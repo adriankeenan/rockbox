@@ -13,8 +13,11 @@
  * the PSP branch in apps/plugins/plugin.lds. */
 #define CONFIG_BINFMT BINFMT_ROCK
 
-/* For Rolo and boot loader */
-#define MODEL_NUMBER  126
+/* For Rolo and boot loader.  Allocated from the fork-reserved MODEL_NUMBER
+ * range documented at the top of firmware/export/config.h -- this port isn't
+ * upstreamed, so it will never be assigned a number by that process, and
+ * anything near upstream's sequential range collides on the next merge. */
+#define MODEL_NUMBER  10001
 #define MODEL_NAME    "Sony PSP"
 
 #define USB_NONE
@@ -60,7 +63,7 @@
 #define HAVE_BUTTON_DATA
 
 /* define this if you have a real-time clock */
-#define CONFIG_RTC APPLICATION
+#define CONFIG_RTC RTC_HOSTED
 
 /* Power management */
 #define CONFIG_BATTERY_MEASURE PERCENTAGE_MEASURE

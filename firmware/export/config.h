@@ -25,6 +25,41 @@
 
 /* symbolic names for multiple choice configurations: */
 
+/* ID ranges reserved for this fork's out-of-tree targets.
+ *
+ * Upstream allocates every ID space below by "highest in use + 1", and this
+ * fork takes a daily automatic merge from upstream.  An ID picked from the
+ * next free upstream slot therefore collides silently the moment upstream
+ * adds a port -- git merges the two adjacent #defines without a conflict, so
+ * nothing fails until a target quietly builds against the wrong keymap or
+ * loads another target's .rock/.lng.  (This has already happened once:
+ * RG35XX_PRO_PAD and PSP_PAD were both 80.)
+ *
+ * Fork-local targets allocate from these ranges instead, each range filled
+ * upward in the order targets were added to the fork (RG35XX Pro first, then
+ * PSP), so a target keeps the same relative position in every range:
+ *   CONFIG_KEYPAD  -- from 200 upward      (upstream is at 79)
+ *   PLATFORM_*     -- from bit 31 downward (upstream is at bit 4; only 32
+ *                     bits exist, so these are taken from the top)
+ *   MODEL_NUMBER   -- from 10000 upward    (upstream is at 124, and the
+ *                     tree-wide max is scramble.c's 131).  It is only a
+ *                     uint32_t checksum seed, so headroom is free.
+ *   tools/configure menu number
+ *                  -- from 500 upward      (upstream is at 310).  Kept small
+ *                     because it is typed at the configure prompt, and a
+ *                     collision here is a visible merge conflict in the
+ *                     fixed-width menu table rather than a silent duplicate.
+ *   tools/configure target_id
+ *                  -- 250-255.  NOT 500+: genlang writes TARGET_ID as a
+ *                     single byte into every .lng header (tools/genlang:607,
+ *                     apps/language.c:76), so anything over 255 silently
+ *                     breaks language loading.
+ *
+ * CONFIG_CPU needs no reserved range: its values are real chip part numbers
+ * (MCF5249, PP5020, X1000), so a fork picking its SoC's own number is
+ * naturally unlikely to collide.
+ */
+
 /* CONFIG_STORAGE (note these are combineable bit-flags) */
 #define STORAGE_ATA_NUM     0
 #define STORAGE_MMC_NUM     1
@@ -94,7 +129,12 @@
 #define PLATFORM_ANDROID (1<<2)
 #define PLATFORM_SDL     (1<<3)
 #define PLATFORM_CTRU    (1<<4)
-#define PLATFORM_PSP     (1<<5)
+/* Fork-local platform bits are allocated from bit 31 downward -- see the
+ * reserved ID ranges at the top of this file.  Unsigned because bit 31 is
+ * the sign bit of a 32-bit int; these are only ever tested in #if, where
+ * the preprocessor is exact either way, but 1U keeps it well-defined if one
+ * is ever used in C code. */
+#define PLATFORM_PSP     (1U<<31)
 
 /* CONFIG_KEYPAD */
 #define IRIVER_H100_PAD     4
@@ -159,8 +199,9 @@
 #define RG_NANO_PAD        77
 #define CTRU_PAD           78
 #define HIBY_R3PROII_PAD   79
-#define PSP_PAD            80
-#define RG35XX_PRO_PAD     81
+/* fork-local pads -- see the reserved ID ranges at the top of this file */
+#define RG35XX_PRO_PAD    200
+#define PSP_PAD           201
 
 /* CONFIG_REMOTE_KEYPAD */
 #define H100_REMOTE   1
