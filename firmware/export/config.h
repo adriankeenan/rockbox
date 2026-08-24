@@ -32,20 +32,21 @@
  * next free upstream slot therefore collides silently the moment upstream
  * adds a port -- git merges the two adjacent #defines without a conflict, so
  * nothing fails until a target quietly builds against the wrong keymap or
- * loads another target's .rock/.lng.  (This has already happened once:
- * RG35XX_PRO_PAD and PSP_PAD were both 80.)
+ * loads another target's .rock/.lng.  This is not hypothetical: PSP_PAD and
+ * RG35XX_PRO_PAD were both 80 once, and upstream has since given pad 80 and
+ * target_id 125 -- the PSP's original values -- to the Hidizs AP80MAX.
  *
  * Fork-local targets allocate from these ranges instead, each range filled
  * upward in the order targets were added to the fork (RG35XX Pro first, then
  * PSP), so a target keeps the same relative position in every range:
- *   CONFIG_KEYPAD  -- from 200 upward      (upstream is at 79)
+ *   CONFIG_KEYPAD  -- from 500 upward      (upstream is at 80)
  *   PLATFORM_*     -- from bit 31 downward (upstream is at bit 4; only 32
  *                     bits exist, so these are taken from the top)
- *   MODEL_NUMBER   -- from 10000 upward    (upstream is at 124, and the
+ *   MODEL_NUMBER   -- from 10000 upward    (upstream is at 125, and the
  *                     tree-wide max is scramble.c's 131).  It is only a
  *                     uint32_t checksum seed, so headroom is free.
  *   tools/configure menu number
- *                  -- from 500 upward      (upstream is at 310).  Kept small
+ *                  -- from 500 upward      (upstream is at 302).  Kept small
  *                     because it is typed at the configure prompt, and a
  *                     collision here is a visible merge conflict in the
  *                     fixed-width menu table rather than a silent duplicate.
@@ -199,9 +200,11 @@
 #define RG_NANO_PAD        77
 #define CTRU_PAD           78
 #define HIBY_R3PROII_PAD   79
-/* fork-local pads -- see the reserved ID ranges at the top of this file */
-#define RG35XX_PRO_PAD    200
-#define PSP_PAD           201
+#define HIDIZS_AP80MAX_PAD 80
+/* Fork-only targets use IDs from 500 up, out of upstream's way --
+   see the reserved ID ranges at the top of this file */
+#define RG35XX_PRO_PAD     500
+#define PSP_PAD            501
 
 /* CONFIG_REMOTE_KEYPAD */
 #define H100_REMOTE   1
@@ -627,6 +630,8 @@ Lyre prototype 1 */
 #include "config/hibyr3proii.h"
 #elif defined(HIBY_R1)
 #include "config/hibyr1.h"
+#elif defined(HIDIZS_AP80MAX)
+#include "config/hidizsap80max.h"
 #elif defined(PSP)
 #include "config/psp.h"
 #else
@@ -1538,6 +1543,14 @@ Lyre prototype 1 */
 #define ucschar_t unsigned int
 #else
 #define ucschar_t unsigned short
+#endif
+
+#ifdef HAVE_SW_VOLUME_CONTROL
+#define WANT_SWVOL
+#endif
+
+#if defined(PCM_NATIVE_BITDEPTH) && (PCM_NATIVE_BITDEPTH > 16)
+#define WANT_SWVOL_32
 #endif
 
 #endif /* __CONFIG_H__ */
