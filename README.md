@@ -11,6 +11,17 @@ recover: check out `upstream-merge`, fix the conflicts and amend the merge
 commit, merge the branch into `master`, delete the branch, then re-run the
 workflow.
 
+## Releases
+
+The [latest release](https://github.com/adriankeenan/rockbox/releases/latest)
+collects the published builds, with a zip per target. There is only ever one
+release -- each publish appends its zips to it.
+
+Builds run weekly via the
+[`Device Build`](.github/workflows/device-build.yml) workflow, which leaves the
+zips as run artifacts. To publish one, run the workflow manually and tick
+**Publish the build as the latest release**.
+
 ## Building locally
 
 CI builds inside a container image (built from the [`Dockerfile`](Dockerfile))
@@ -72,9 +83,10 @@ None!
 
 **Installation**
 
-Copy the release zip (`rockbox-rg35xxpro.zip`) contents onto the device's
-SHARE partition at `/userdata/roms/ports/`, giving `roms/ports/rockbox.sh`
-and `roms/ports/rockbox/`. Launch "Rockbox" from EmulationStation's Ports.
+Copy the release zip (`rockbox-rg35xxpro-<date>-<commit>.zip`) contents onto
+the device's SHARE partition at `/userdata/roms/ports/`, giving
+`roms/ports/rockbox.sh` and `roms/ports/rockbox/`. Launch "Rockbox" from
+EmulationStation's Ports.
 
 **Keymap**
 
