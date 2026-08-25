@@ -13,14 +13,15 @@ workflow.
 
 ## Releases
 
-The [latest release](https://github.com/adriankeenan/rockbox/releases/latest)
-collects the published builds, with a zip per target. There is only ever one
-release -- each publish appends its zips to it.
+Each publish creates its own release, tagged `build-<date>-<commit>` and
+carrying one zip per target. The
+[latest release](https://github.com/adriankeenan/rockbox/releases/latest)
+points at the most recent one.
 
 Builds run weekly via the
 [`Device Build`](.github/workflows/device-build.yml) workflow, which leaves the
 zips as run artifacts. To publish one, run the workflow manually and tick
-**Publish the build as the latest release**.
+**Publish the build as a release**.
 
 ## Building locally
 
