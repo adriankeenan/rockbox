@@ -2,6 +2,12 @@ name: Device Build
 
 on:
   workflow_dispatch:
+    inputs:
+      release:
+        description: 'Publish the build as a release'
+        required: false
+        default: false
+        type: boolean
   schedule:
     - cron: '0 3 * * 1' # weekly, Monday 03:00 UTC
 
@@ -9,6 +15,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container: ghcr.io/adriankeenan/rockbox-env:psp
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -75,3 +83,69 @@ jobs:
           path: ${{ steps.build-info.outputs.path }}
           if-no-files-found: error
           archive: false
+
+  create-release:
+    name: Publish release
+    needs: build
+    if: github.event_name == 'workflow_dispatch' && inputs.release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Get build info
+        id: build-info
+        env:
+          TZ: UTC
+        run: |
+          hash="$(git rev-parse --verify --short=10 HEAD)"
+          echo "hash=${hash}" >> "$GITHUB_OUTPUT"
+          echo "date_display=$(git log -1 --format=%cd --date=format-local:'%Y-%m-%d %H:%M:%S')" >> "$GITHUB_OUTPUT"
+          echo "tag=build-$(git log -1 --format=%cd --date=format-local:%Y%m%d)-${hash}" >> "$GITHUB_OUTPUT"
+
+      - name: Download firmware artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          path: ${{ runner.temp }}/release-assets
+          pattern: 'rockbox-*.zip'
+          merge-multiple: true
+          # Artifacts are uploaded with archive:false, so without this the zips
+          # get unpacked on download.
+          skip-decompress: true
+
+      - name: Check firmware artifacts
+        env:
+          ASSET_DIR: ${{ runner.temp }}/release-assets
+          EXPECTED_ZIPS: 2
+        run: |
+          ls -sh "$ASSET_DIR"
+          found="$(find "$ASSET_DIR" -maxdepth 1 -type f -name '*.zip' | wc -l)"
+          if [ "$found" -ne "$EXPECTED_ZIPS" ]; then
+            echo "::error::expected ${EXPECTED_ZIPS} firmware zips, found ${found}"
+            exit 1
+          fi
+
+      - name: Create release
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
+        with:
+          tag_name: ${{ steps.build-info.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: Build ${{ steps.build-info.outputs.date_display }} (${{ steps.build-info.outputs.hash }})
+          working_directory: ${{ runner.temp }}/release-assets
+          files: '*.zip'
+          fail_on_unmatched_files: true
+          overwrite_files: true
+          make_latest: true
+          generate_release_notes: false
+          body: |
+            Device builds of [this Rockbox fork](${{ github.server_url }}/${{ github.repository }}).
+
+            Built from commit [`${{ steps.build-info.outputs.hash }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}), committed on ${{ steps.build-info.outputs.date_display }} UTC.
+
+            One zip per target below, named by target, build date and commit.
+            See the
+            [README](${{ github.server_url }}/${{ github.repository }}#new-targets)
+            for installation instructions.
