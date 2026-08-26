@@ -232,12 +232,17 @@ struct sdmmc_host
      */
     struct mutex lock;
 
+    /* Temporary disk cache buffer */
+    void *dc_buffer;
+
     /* Bus & device state flags; must only be accessed with lock held */
     bool enabled     : 1;
     bool need_reset  : 1;
     bool powered     : 1;
     bool initialized : 1;
     bool is_hcs_card : 1;
+    bool use_cmd23   : 1;
+    bool led_active  : 1; /* LED active may be read without lock */
 
     /* Controller implemented by the target */
     const struct sdmmc_controller_ops *ops;
