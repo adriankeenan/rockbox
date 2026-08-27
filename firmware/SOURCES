@@ -19,7 +19,9 @@ target/hosted/cpuinfo-linux.c
 target/hosted/cpufreq-linux.c
 #endif
 
-#if !defined(SAMSUNG_YPR0) || defined(SIMULATOR) /* uses as3514 rtc */
+/* YPR0 uses the as3514 rtc; PSP has its own (time() does not reach its
+   clock). Simulator builds always want the generic host one. */
+#if (!defined(SAMSUNG_YPR0) && !defined(PSP)) || defined(SIMULATOR)
 target/hosted/rtc.c
 #endif
 
@@ -2080,6 +2082,7 @@ target/hosted/ctru/lib/bfile/bfile.c
 #if (CONFIG_PLATFORM & PLATFORM_PSP)
 target/hosted/filesystem-unix.c
 target/hosted/psp/system-psp.c
+target/hosted/psp/rtc-psp.c
 target/hosted/psp/thread-psp.c
 target/hosted/psp/kernel-psp.c
 target/hosted/psp/button-psp.c
