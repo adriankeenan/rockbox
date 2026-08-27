@@ -182,6 +182,7 @@ plasma.c
 #ifdef HAVE_LCD_COLOR
 clix.c
 codebuster.c
+simplelrc.c
 #endif
 
 #if (LCD_WIDTH > 112) && (LCD_HEIGHT > 64)
