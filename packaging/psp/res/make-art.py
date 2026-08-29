@@ -76,10 +76,10 @@ wm.putalpha(glyph_mask)
 wm = fit(wm, 250, 250)
 pic.alpha_composite(wm, (W - 128, H - 132))
 
-# main logo, upper-centre. It carries its own "open source jukebox
-# firmware" strip, so nothing below should repeat that line.
-lg = fit(logo, 348, 150)
-pic.alpha_composite(lg, ((W - lg.width) // 2, 62))
+# Deliberately no wordmark here. ICON0 already carries it, and the XMB draws
+# that icon across the middle of this image -- a logo here meant the icon
+# landed on top of an identical logo, hiding both. Everything drawn below sits
+# in the bottom band, which the icon clears.
 
 d = ImageDraw.Draw(pic)
 f_title = ImageFont.truetype(FONT_BOLD, 20)
