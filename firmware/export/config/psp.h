@@ -29,6 +29,9 @@
 /* define this if you have a colour LCD */
 #define HAVE_LCD_COLOR
 
+/* define this if you want album art for this target */
+#define HAVE_ALBUMART
+
 /* define this to enable bitmap scaling */
 #define HAVE_BMP_SCALING
 
