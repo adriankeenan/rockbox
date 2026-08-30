@@ -70,7 +70,18 @@
 #define WRAPPER(_x_) _x_ ## _wrapper
 
 #if (CONFIG_PLATFORM & PLATFORM_HOSTED)
+#if (CONFIG_BINFMT == BINFMT_ROCK)
+/* BINFMT_ROCK plugins are linked at pluginbuf's absolute address (discovered
+ * from the main binary at build time), so a .rock file only loads into the
+ * exact build it was produced with. Aligning to PLUGIN_BUFFER_SIZE pins
+ * pluginbuf to a round boundary so ordinary changes elsewhere don't shift it,
+ * keeping already-installed plugins loadable across rebuilds -- the same
+ * reasoning as codecbuf in apps/codecs.c. */
+static unsigned char pluginbuf[PLUGIN_BUFFER_SIZE]
+    __attribute__((aligned(PLUGIN_BUFFER_SIZE)));
+#else
 static unsigned char pluginbuf[PLUGIN_BUFFER_SIZE];
+#endif
 void sim_lcd_ex_init(unsigned long (*getpixel)(int, int));
 void sim_lcd_ex_update_rect(int x, int y, int width, int height);
 #else
@@ -958,7 +969,11 @@ int plugin_load(const char* plugin, const void* parameter)
     if (hdr == NULL
         || hdr->magic != PLUGIN_MAGIC
         || hdr->target_id != TARGET_ID
-#if (CONFIG_PLATFORM & PLATFORM_NATIVE)
+/* Really a CONFIG_BINFMT question, not a CONFIG_PLATFORM one: BINFMT_ROCK
+ * loads the plugin straight into pluginbuf at a fixed address, so these
+ * bounds are meaningful however the target is built. PLATFORM_NATIVE was a
+ * correct proxy only until PSP became the first hosted BINFMT_ROCK target. */
+#if (CONFIG_PLATFORM & PLATFORM_NATIVE) || (CONFIG_BINFMT == BINFMT_ROCK)
         || hdr->load_addr != pluginbuf
         || hdr->end_addr > pluginbuf + PLUGIN_BUFFER_SIZE
 #endif
@@ -977,7 +992,7 @@ int plugin_load(const char* plugin, const void* parameter)
         return -1;
     }
 
-#if (CONFIG_PLATFORM & PLATFORM_NATIVE)
+#if (CONFIG_PLATFORM & PLATFORM_NATIVE) || (CONFIG_BINFMT == BINFMT_ROCK)
     /* tlsf crashes observed on arm with 0x4 aligned addresses */
     plugin_size = ALIGN_UP(hdr->end_addr - pluginbuf, 0x8);
 #else

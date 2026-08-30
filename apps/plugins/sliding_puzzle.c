@@ -377,6 +377,15 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define PUZZLE_SHUFFLE  BUTTON_B
 #define PUZZLE_PICTURE  BUTTON_A
 
+#elif CONFIG_KEYPAD == PSP_PAD
+#define PUZZLE_QUIT     BUTTON_START
+#define PUZZLE_LEFT     BUTTON_LEFT
+#define PUZZLE_RIGHT    BUTTON_RIGHT
+#define PUZZLE_UP       BUTTON_UP
+#define PUZZLE_DOWN     BUTTON_DOWN
+#define PUZZLE_SHUFFLE  BUTTON_CIRCLE
+#define PUZZLE_PICTURE  BUTTON_CROSS
+
 #elif CONFIG_KEYPAD == CTRU_PAD
 #define PUZZLE_QUIT     BUTTON_BACK
 #define PUZZLE_LEFT     BUTTON_LEFT
@@ -925,6 +934,10 @@ enum plugin_status plugin_start(
         rb->lcd_putsxy(0, 18, "[Start] to stop");
         rb->lcd_putsxy(0, 28, "[B] shuffle");
         rb->lcd_putsxy(0, 38, "[A] change pic");
+#elif CONFIG_KEYPAD == PSP_PAD
+        rb->lcd_putsxy(0, 18, "[Start] to stop");
+        rb->lcd_putsxy(0, 28, "[CIRCLE] shuffle");
+        rb->lcd_putsxy(0, 38, "[CROSS] change pic");
 #endif
 #ifdef HAVE_TOUCHSCREEN
         rb->lcd_putsxy(0, 18, PUZZLE_QUIT_TEXT " to stop");
