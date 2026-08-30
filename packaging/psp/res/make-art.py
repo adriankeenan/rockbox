@@ -3,7 +3,7 @@
 Rockbox SVG logos in docs/logo/."""
 
 import sys
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 OUT_ICON = sys.argv[1]
 OUT_PIC1 = sys.argv[2]
@@ -13,9 +13,6 @@ CLEF = sys.argv[5]   # pre-rendered rockbox-clef.svg (RGBA)
 
 AMBER = (255, 192, 0)
 STEEL = (180, 195, 211)
-
-FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-FONT_REG = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 
 
 def vgradient(size, top, bottom):
@@ -76,23 +73,10 @@ wm.putalpha(glyph_mask)
 wm = fit(wm, 250, 250)
 pic.alpha_composite(wm, (W - 128, H - 132))
 
-# Deliberately no wordmark here. ICON0 already carries it, and the XMB draws
-# that icon across the middle of this image -- a logo here meant the icon
-# landed on top of an identical logo, hiding both. Everything drawn below sits
-# in the bottom band, which the icon clears.
-
-d = ImageDraw.Draw(pic)
-f_title = ImageFont.truetype(FONT_BOLD, 20)
-
-
-def centred(text, y, font, fill):
-    tw = d.textbbox((0, 0), text, font=font)[2]
-    d.text(((W - tw) // 2, y), text, font=font, fill=fill)
-
-
-rule_y = 182
-d.line([(W // 2 - 104, rule_y), (W // 2 + 104, rule_y)], fill=(255, 192, 0, 110))
-centred("PlayStation Portable", rule_y + 14, f_title, AMBER)
+# Nothing else goes on here -- no wordmark, no caption, no rule. This is a
+# backdrop, and the XMB lays its own entry icon across the middle of it and
+# draws the item title alongside. ICON0 already carries the brand, so anything
+# added here would either hide under the icon or repeat the title.
 
 pic.convert("RGB").save(OUT_PIC1)
 print("wrote", OUT_ICON, OUT_PIC1)
