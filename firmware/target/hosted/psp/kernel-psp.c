@@ -33,6 +33,14 @@
 
 long start_tick;
 
+/* Origin for the tick clock, in microseconds. Deliberately not derived from
+ * start_tick: sceKernelGetSystemTimeLow() is only the low 32 bits of the
+ * microsecond clock and so wraps every ~72 minutes, which is survivable for
+ * start_tick's use in sleep_thread() (a modulo, so a wrap costs one skewed
+ * sleep) but not for a clock current_tick is computed from -- a wrap there
+ * would send the catch-up loop below spinning. Wide is 64-bit. */
+static SceInt64 tick_origin_us;
+
 /* irq_mtx has to be reentrant: sim_enter_irq_handler() holds it for the
  * whole duration of call_tick_tasks() (i.e. across button_tick() and
  * friends), and tick tasks routinely call disable_irq()/restore_irq()
@@ -135,11 +143,32 @@ static int tick_thread_func(SceSize args, void *argp)
 
     while (tick_thread_should_run)
     {
+        long new_tick;
+
         sceKernelDelayThread(1000000 / HZ);
 
-        sim_enter_irq_handler();
-        call_tick_tasks();
-        sim_exit_irq_handler();
+        /* Drive current_tick from the wall clock and run call_tick_tasks()
+         * until it catches up, the same way the SDL sim's tick_timer() and
+         * the ctru port do.
+         *
+         * Advancing it once per pass through this loop instead makes
+         * current_tick mean "how many times this thread got to run", which is
+         * always slower than real time: each pass costs the sleep plus the
+         * handler plus however long sim_enter_irq_handler() spent waiting on
+         * a thread that holds disable_irq(). Ticks lost that way were never
+         * made up, so the whole of Rockbox's tick-counted timing ran slow by
+         * an amount that grew with load. Input took the brunt of it, since
+         * button_tick() is a tick task and button.c counts repeat and
+         * long-press thresholds in ticks. */
+        new_tick = (long)((sceKernelGetSystemTimeWide() - tick_origin_us) /
+                          (1000000 / HZ));
+
+        while (new_tick != current_tick)
+        {
+            sim_enter_irq_handler();
+            call_tick_tasks();
+            sim_exit_irq_handler();
+        }
     }
 
     return 0;
@@ -168,6 +197,7 @@ void tick_start(unsigned int interval_in_ms)
     irqlock_init(&irq_mtx);
     irq_cond_sema = sceKernelCreateSema("rb_irq_cond", 0, 0, 255, NULL);
 
+    tick_origin_us = sceKernelGetSystemTimeWide();
     start_tick = sceKernelGetSystemTimeLow() / 1000;
 
     tick_thread_should_run = true;
