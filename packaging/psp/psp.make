@@ -76,44 +76,6 @@ CODECLDFLAGS = -T$(CODECLINK_LDS) -Wl,--gc-sections \
 # here, now that CODECLINK_LDS actually has a value.
 $(CODECS): $(CODECLINK_LDS)
 
-# --- Plugin loading (CONFIG_BINFMT == BINFMT_ROCK) ---
-# Exactly the codec scheme above, against apps/plugin.c's `pluginbuf`
-# instead of `codecbuf`. plugins.make only defines PLUGIN_LDS/PLUGINLINK_LDS
-# and the fixed-address link flags for non-APP_TYPE builds (PSP is an
-# APP_TYPE build), and its APP_TYPE branch assumes dlopen-style shared
-# objects, so both are defined here instead. This file is included after
-# plugins.make (tools/root.make), so these assignments win.
-PSP_PLUGIN_ADDR_HDR := $(BUILDDIR)/psp-plugin-addr.h
-
-$(PSP_PLUGIN_ADDR_HDR): $(BUILDDIR)/$(BINARY)
-	$(call PRINTS,NM $(@F))
-	$(SILENT)addr=$$($(PSPDEV)/bin/psp-nm $(BUILDDIR)/$(BINARY) | \
-		awk '$$3 == "pluginbuf" { print "0x"$$1 }'); \
-	if [ -z "$$addr" ]; then \
-		echo "error: pluginbuf symbol not found in $(BUILDDIR)/$(BINARY)" >&2; \
-		exit 1; \
-	fi; \
-	echo "#define PSP_PLUGIN_ORIGIN $$addr" > $@
-
-PLUGIN_LDS := $(APPSDIR)/plugins/plugin.lds
-PLUGINLINK_LDS := $(BUILDDIR)/apps/plugins/plugin.link
-
-# -DPLUGIN, matching plugins.make's own rule -- without it plugin.lds lays
-# out a codec rather than a plugin.
-$(PLUGINLINK_LDS): $(PLUGIN_LDS) $(CONFIGFILE) $(PSP_PLUGIN_ADDR_HDR)
-	$(call PRINTS,PP $(@F))
-	$(SILENT)mkdir -p $(dir $@)
-	$(SILENT)$(CC) $(PPCFLAGS) -DPLUGIN -include $(PSP_PLUGIN_ADDR_HDR) \
-		-E -P -x c -include config.h $< -o $@
-
-PLUGINLDFLAGS = -T$(PLUGINLINK_LDS) -Wl,--gc-sections \
-	-Wl,$(LDMAP_OPT),$*.map $(GLOBAL_LDOPTS)
-
-# Same staleness as $(CODECS) above: plugins.make's own
-# "$(ROCKS): ... $(PLUGINLINK_LDS)" was parsed while PLUGINLINK_LDS was
-# still unset, so that prerequisite expanded to nothing.
-$(ROCKS): $(PLUGINLINK_LDS)
-
 PSP_PACKAGES := $(EBOOT_PBP)
 build: $(PSP_PACKAGES)
 bin: $(PSP_PACKAGES)

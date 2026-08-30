@@ -4370,7 +4370,7 @@ fi
     output="rockbox.elf"
     bootoutput="rockbox"
     appextra="recorder:gui"
-    plugins="yes"
+    plugins="" # TODO: plugins need per-target keymap entries (CONFIG_KEYPAD == PSP_PAD) added throughout apps/plugins/
     t_cpu="hosted"
     t_manufacturer="psp"
     t_model="app"

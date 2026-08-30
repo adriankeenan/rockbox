@@ -491,17 +491,6 @@ static void setoptions (void)
         options.SELECT  = BUTTON_FN;
         options.MENU    = BUTTON_X;
 
-#elif CONFIG_KEYPAD == PSP_PAD
-        options.UP      = BUTTON_UP;
-        options.DOWN    = BUTTON_DOWN;
-        options.A       = BUTTON_CROSS;
-        options.B       = BUTTON_CIRCLE;
-        options.START   = BUTTON_START;
-        /* The RG35XX Pro puts Game Boy Select on FN because its own Select
-           is taken; the PSP's Select is free, so use the obvious one. */
-        options.SELECT  = BUTTON_SELECT;
-        options.MENU    = BUTTON_TRIANGLE;
-
 #elif CONFIG_KEYPAD == CTRU_PAD
         options.UP     = BUTTON_UP;
         options.DOWN   = BUTTON_DOWN;

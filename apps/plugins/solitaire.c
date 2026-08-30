@@ -759,23 +759,6 @@ CONFIG_KEYPAD == MROBE500_PAD
 #   define HK_CUR2STACK      "B"
 #   define HK_REM2STACK      "R"
 
-#elif CONFIG_KEYPAD == PSP_PAD
-#   define SOL_QUIT          BUTTON_START
-#   define SOL_UP            BUTTON_UP
-#   define SOL_DOWN          BUTTON_DOWN
-#   define SOL_LEFT          BUTTON_LEFT
-#   define SOL_RIGHT         BUTTON_RIGHT
-#   define SOL_MOVE          BUTTON_CROSS
-#   define SOL_DRAW          BUTTON_TRIANGLE
-#   define SOL_REM2CUR       BUTTON_L
-#   define SOL_CUR2STACK     BUTTON_CIRCLE
-#   define SOL_REM2STACK     BUTTON_R
-#   define HK_MOVE           "CROSS"
-#   define HK_DRAW           "TRIANGLE"
-#   define HK_REM2CUR        "L"
-#   define HK_CUR2STACK      "CIRCLE"
-#   define HK_REM2STACK      "R"
-
 #elif (CONFIG_KEYPAD == CTRU_PAD)
 #   define SOL_QUIT         BUTTON_BACK
 #   define SOL_UP           BUTTON_UP
