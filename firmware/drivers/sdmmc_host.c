@@ -221,6 +221,7 @@ static void sdmmc_host_bus_reset(struct sdmmc_host *host)
     host->initialized = false;
     host->is_hcs_card = false;
     host->use_cmd23 = false;
+    host->quirk_rdwrsingleblock_delay = false;
     memset(&host->cardinfo, 0, sizeof(host->cardinfo));
 }
 
@@ -650,56 +651,56 @@ static int sdmmc_host_device_init(struct sdmmc_host *host)
     if (rc)
     {
         logf("sdmmc_host_cmd_go_idle_state: %d", rc);
-        return rc;
+        goto out;
     }
 
     rc = sdmmc_host_cmd_send_if_cond(host);
     if (rc)
     {
         logf("sdmmc_host_cmd_send_if_cond: %d", rc);
-        return rc;
+        goto out;
     }
 
     rc = sdmmc_host_cmd_send_app_op_cond(host);
     if (rc)
     {
         logf("sdmmc_host_cmd_send_app_op_cond: %d", rc);
-        return rc;
+        goto out;
     }
 
     rc = sdmmc_host_cmd_all_send_cid(host);
     if (rc)
     {
         logf("sdmmc_host_cmd_all_send_cid: %d", rc);
-        return rc;
+        goto out;
     }
 
     rc = sdmmc_host_cmd_send_rca(host);
     if (rc)
     {
         logf("sdmmc_host_cmd_send_rca: %d", rc);
-        return rc;
+        goto out;
     }
 
     rc = sdmmc_host_cmd_send_csd(host);
     if (rc)
     {
         logf("sdmmc_host_cmd_send_csd: %d", rc);
-        return rc;
+        goto out;
     }
 
     rc = sdmmc_host_cmd_select_card(host);
     if (rc)
     {
         logf("sdmmc_host_cmd_select_card: %d", rc);
-        return rc;
+        goto out;
     }
 
     rc = sdmmc_host_cmd_clr_card_detect(host);
     if (rc)
     {
         logf("sdmmc_host_cmd_select_card: %d", rc);
-        return rc;
+        goto out;
     }
 
     /*
@@ -712,7 +713,7 @@ static int sdmmc_host_device_init(struct sdmmc_host *host)
         if (rc)
         {
             logf("sdmmc_host_cmd_set_bus_width: %d", rc);
-            return rc;
+            goto out;
         }
 
         sdmmc_host_set_controller_bus_width(host, SDMMC_BUS_WIDTH_4BIT);
@@ -729,7 +730,7 @@ static int sdmmc_host_device_init(struct sdmmc_host *host)
         if (rc)
         {
             logf("sdmmc_host_cmd_switch_freq: %d", rc);
-            return rc;
+            goto out;
         }
 
         sdmmc_host_set_controller_bus_clock(host, SDMMC_BUS_CLOCK_50MHZ);
@@ -743,12 +744,22 @@ static int sdmmc_host_device_init(struct sdmmc_host *host)
     if (rc)
     {
         logf("sdmmc_host_cmd_send_scr: %d", rc);
-        return rc;
+        goto out;
     }
 
-    host->initialized = true;
-    host->cardinfo.initialized = true;
-    return 0;
+out:
+    if (rc)
+    {
+        host->need_reset = true;
+    }
+    else
+    {
+        host->initialized = true;
+        host->cardinfo.initialized = true;
+    }
+
+    sdmmc_host_release_dc_buffer(host);
+    return rc;
 }
 
 static int sdmmc_host_transfer(struct sdmmc_host *host,
@@ -775,12 +786,8 @@ static int sdmmc_host_transfer(struct sdmmc_host *host,
     if (!host->initialized)
     {
         rc = sdmmc_host_device_init(host);
-        sdmmc_host_release_dc_buffer(host);
         if (rc)
-        {
-            host->need_reset = true;
             goto out;
-        }
     }
 
     if (count < 1)
@@ -835,6 +842,9 @@ static int sdmmc_host_transfer(struct sdmmc_host *host,
                 cmd.command = SD_WRITE_BLOCK;
             else
                 cmd.command = SD_READ_SINGLE_BLOCK;
+
+            if (host->quirk_rdwrsingleblock_delay)
+                udelay(50);
         }
 
         if (host->cardinfo.sd2plus)
@@ -843,6 +853,23 @@ static int sdmmc_host_transfer(struct sdmmc_host *host,
             cmd.argument = start * SD_BLOCK_SIZE;
 
         rc = sdmmc_host_submit_cmd(host, &cmd, NULL);
+
+        if (rc == SDMMC_STATUS_TIMEOUT &&
+            !host->quirk_rdwrsingleblock_delay &&
+            (cmd.command == SD_WRITE_BLOCK ||
+             cmd.command == SD_READ_SINGLE_BLOCK))
+        {
+            logf("sdmmc_host: enabling quirk_rdwrsingleblock_delay");
+
+            sdmmc_host_bus_reset(host);
+            rc = sdmmc_host_device_init(host);
+            if (rc)
+                goto out;
+
+            host->quirk_rdwrsingleblock_delay = true;
+            continue;
+        }
+
         if (rc)
             goto out;
 
