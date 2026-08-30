@@ -47,20 +47,22 @@
 /* Rockbox's internal software framebuffer is kept at the classic 320x240
  * resolution (rather than the PSP's native 480x272) so that the large
  * body of existing 320x240 Rockbox themes work unmodified. lcd-psp.c
- * scales this up to fill the real 480x272 panel at display-update time,
- * preserving aspect ratio (pillarboxed, since 320x240 is 4:3 vs. the
- * panel's wider ~1.76:1). See PSP_DISP_WIDTH/PSP_DISP_HEIGHT in
- * lcd-target.h for the real physical panel dimensions. */
+ * blits it 1:1 into the middle of the real 480x272 panel at display-update
+ * time, leaving black borders (80px left and right, 16px top and bottom)
+ * rather than scaling, so theme pixels stay sharp. See PSP_DISP_WIDTH/
+ * PSP_DISP_HEIGHT in lcd-target.h for the real physical panel
+ * dimensions. */
 #define LCD_WIDTH  320
 #define LCD_HEIGHT 240
 
 #define LCD_DEPTH  16
 #define LCD_PIXELFORMAT RGB565
 
-/* approximate DPI of the PSP's 4.3" screen as seen through the scaled-up
- * 320x240 logical framebuffer (240 logical rows fill the same ~2.4in of
- * panel height that 272 native rows used to) */
-#define LCD_DPI 100
+/* 480x272 across a 4.3" diagonal works out at ~128dpi. Because the 320x240
+ * framebuffer is blitted 1:1 (see above), one logical pixel is one physical
+ * pixel and the logical image has that same density -- it just covers a
+ * 2.5x1.9in window of the panel instead of all of it. */
+#define LCD_DPI 128
 
 /* define this to indicate your device's keypad */
 #define HAVE_BUTTON_DATA
