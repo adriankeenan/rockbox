@@ -44,6 +44,11 @@ static int analog_center_y = PSP_ANALOG_CENTER;
 static int analog_state_x = 0;
 static int analog_state_y = 0;
 
+/* Which axis each input source is currently attributed to; see
+ * psp_collapse_axis() in analog-psp.h. */
+static int dpad_axis = PSP_AXIS_NONE;
+static int nub_axis = PSP_AXIS_NONE;
+
 /* Last mask handed back, so a failed peek can repeat it instead of
  * reporting a full release. */
 static int last_key = BUTTON_NONE;
@@ -77,6 +82,8 @@ int button_read_device(int *data)
 
         analog_state_x = 0;
         analog_state_y = 0;
+        dpad_axis = PSP_AXIS_NONE;
+        nub_axis = PSP_AXIS_NONE;
         last_key = BUTTON_NONE;
         return BUTTON_NONE;
     }
@@ -86,11 +93,12 @@ int button_read_device(int *data)
     hold_state = (pad.Buttons & PSP_CTRL_HOLD) != 0;
 
     int key = BUTTON_NONE;
+    int dpad = BUTTON_NONE;
 
-    if (pad.Buttons & PSP_CTRL_UP)       key |= BUTTON_UP;
-    if (pad.Buttons & PSP_CTRL_DOWN)     key |= BUTTON_DOWN;
-    if (pad.Buttons & PSP_CTRL_LEFT)     key |= BUTTON_LEFT;
-    if (pad.Buttons & PSP_CTRL_RIGHT)    key |= BUTTON_RIGHT;
+    if (pad.Buttons & PSP_CTRL_UP)       dpad |= BUTTON_UP;
+    if (pad.Buttons & PSP_CTRL_DOWN)     dpad |= BUTTON_DOWN;
+    if (pad.Buttons & PSP_CTRL_LEFT)     dpad |= BUTTON_LEFT;
+    if (pad.Buttons & PSP_CTRL_RIGHT)    dpad |= BUTTON_RIGHT;
     if (pad.Buttons & PSP_CTRL_TRIANGLE) key |= BUTTON_TRIANGLE;
     if (pad.Buttons & PSP_CTRL_CIRCLE)   key |= BUTTON_CIRCLE;
     if (pad.Buttons & PSP_CTRL_CROSS)    key |= BUTTON_CROSS;
@@ -105,10 +113,20 @@ int button_read_device(int *data)
     int dx = psp_axis_direction((int)pad.Lx - analog_center_x, &analog_state_x);
     int dy = psp_axis_direction((int)pad.Ly - analog_center_y, &analog_state_y);
 
-    if (dx < 0) key |= BUTTON_LEFT;
-    if (dx > 0) key |= BUTTON_RIGHT;
-    if (dy < 0) key |= BUTTON_UP;
-    if (dy > 0) key |= BUTTON_DOWN;
+    int nub = BUTTON_NONE;
+    if (dx < 0) nub |= BUTTON_LEFT;
+    if (dx > 0) nub |= BUTTON_RIGHT;
+    if (dy < 0) nub |= BUTTON_UP;
+    if (dy > 0) nub |= BUTTON_DOWN;
+
+    /* Collapse each source on its own latch, then merge -- deliberately not
+     * one shared latch over the merged result. A nub resting off-centre holds
+     * its direction indefinitely, and under a shared latch that would claim
+     * the axis forever and lock the D-pad out of it entirely: a worse bug
+     * than the one being fixed here. Keeping the latches separate means the
+     * D-pad's always releases, because the D-pad always does. */
+    key |= psp_collapse_axis(dpad, &dpad_axis);
+    key |= psp_collapse_axis(nub, &nub_axis);
 
     last_key = key;
     return key;

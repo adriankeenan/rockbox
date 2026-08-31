@@ -32,6 +32,7 @@
  */
 
 #include <stdio.h>
+#include "app/button-target.h"
 #include "analog-psp.h"
 
 static int fails = 0;
@@ -151,6 +152,60 @@ int main(void)
                      "raw rest %d -> centre %d: spurious events", raw, centre);
             check(label, t, 0);
         }
+    }
+
+    /* 8. Diagonal collapse. The reported bug: an off-centre D-pad press
+          closes two switches, the resulting two-direction mask matches no
+          keymap entry at all, and the press vanishes. */
+    {
+        int held = PSP_AXIS_NONE;
+        printf("diagonal collapse (D-pad rocker):\n");
+        check("UP alone passes through",
+              psp_collapse_axis(BUTTON_UP, &held), BUTTON_UP);
+        check("stray LEFT arriving mid-press is dropped",
+              psp_collapse_axis(BUTTON_UP | BUTTON_LEFT, &held), BUTTON_UP);
+        check("...and stays dropped while held",
+              psp_collapse_axis(BUTTON_UP | BUTTON_LEFT, &held), BUTTON_UP);
+        /* The back-a-level case: vertical opens first, leaving a bare LEFT
+           that would otherwise post as ACTION_STD_CANCEL. */
+        check("lone LEFT after UP releases is suppressed",
+              psp_collapse_axis(BUTTON_LEFT, &held), 0);
+        check("release clears the latch",
+              psp_collapse_axis(0, &held), 0);
+        check("LEFT alone now works again",
+              psp_collapse_axis(BUTTON_LEFT, &held), BUTTON_LEFT);
+        psp_collapse_axis(0, &held);
+    }
+
+    /* 9. A simultaneous tie resolves to vertical, and horizontal presses are
+          not broken by the collapse. */
+    {
+        int held = PSP_AXIS_NONE;
+        printf("ties and horizontal presses:\n");
+        check("UP+LEFT in one poll -> vertical wins",
+              psp_collapse_axis(BUTTON_UP | BUTTON_LEFT, &held), BUTTON_UP);
+        psp_collapse_axis(0, &held);
+        check("LEFT then stray UP -> horizontal keeps it",
+              psp_collapse_axis(BUTTON_LEFT, &held), BUTTON_LEFT);
+        check("   stray UP dropped",
+              psp_collapse_axis(BUTTON_LEFT | BUTTON_UP, &held), BUTTON_LEFT);
+        psp_collapse_axis(0, &held);
+        check("opposing UP+DOWN is nonsense -> dropped",
+              psp_collapse_axis(BUTTON_UP | BUTTON_DOWN, &held), 0);
+    }
+
+    /* 10. The D-pad must stay usable even while the nub holds a direction --
+           the reason the two sources get separate latches. */
+    {
+        int dpad_held = PSP_AXIS_NONE, nub_held = PSP_AXIS_NONE;
+        int nub = BUTTON_LEFT;   /* nub resting off-centre, latched */
+        printf("nub stuck LEFT must not lock the D-pad out of vertical:\n");
+        int k = psp_collapse_axis(BUTTON_UP, &dpad_held)
+              | psp_collapse_axis(nub, &nub_held);
+        check("D-pad UP still reaches the mask", (k & BUTTON_UP) != 0, 1);
+        k = psp_collapse_axis(BUTTON_DOWN, &dpad_held)
+          | psp_collapse_axis(nub, &nub_held);
+        check("D-pad DOWN still reaches the mask", (k & BUTTON_DOWN) != 0, 1);
     }
 
     printf("\n%s (%d failure%s)\n", fails ? "FAILED" : "ALL PASSED",

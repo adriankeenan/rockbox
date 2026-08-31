@@ -21,7 +21,8 @@
 #ifndef _ANALOG_PSP_H_
 #define _ANALOG_PSP_H_
 
-/* Turning the PSP's analog nub into direction buttons.
+/* Producing Rockbox direction buttons on the PSP: turning the analog nub into
+ * them, and collapsing a two-direction press down to one.
  *
  * This lives in its own dependency-free header so the decision logic can be
  * unit-tested on the host without a PSP toolchain -- see the test referenced
@@ -83,6 +84,53 @@ static inline int psp_axis_calibrate(int measured)
     if (measured > PSP_ANALOG_CENTER + PSP_ANALOG_CENTER_MAX_ADJ)
         return PSP_ANALOG_CENTER + PSP_ANALOG_CENTER_MAX_ADJ;
     return measured;
+}
+
+/* Which axis a press is being attributed to. */
+#define PSP_AXIS_NONE 0
+#define PSP_AXIS_VERT 1
+#define PSP_AXIS_HORZ 2
+
+/* Collapse a direction bitmap to a single axis.
+ *
+ * The PSP D-pad is a rocker: an off-centre press closes two switches at once,
+ * which is exactly how games get diagonals. Rockbox has no diagonal binding
+ * anywhere, and apps/action.c matches the whole button mask exactly
+ * (action.c:574, against the full mask button.c posts), so a diagonal matches
+ * nothing and the press is silently swallowed. Worse, the two switches rarely
+ * open on the same tick, so the survivor gets posted alone -- and a bare
+ * BUTTON_LEFT is ACTION_STD_CANCEL with no pre-button in
+ * button_context_standard, i.e. a menu jumping back a level mid-scroll.
+ *
+ * Whichever axis opened the press keeps it until this source reports no
+ * direction at all. *held is PSP_AXIS_*, owned by the caller. Callers must
+ * have BUTTON_UP/DOWN/LEFT/RIGHT in scope.
+ *
+ * Opposing pairs (UP+DOWN) are dropped outright rather than picked between:
+ * a rocker cannot really be both, so the reading is nonsense either way. */
+static inline int psp_collapse_axis(int dirs, int *held)
+{
+    int vert = dirs & (BUTTON_UP | BUTTON_DOWN);
+    int horz = dirs & (BUTTON_LEFT | BUTTON_RIGHT);
+
+    if (vert == (BUTTON_UP | BUTTON_DOWN))
+        vert = 0;
+    if (horz == (BUTTON_LEFT | BUTTON_RIGHT))
+        horz = 0;
+
+    if (!vert && !horz)
+    {
+        *held = PSP_AXIS_NONE;
+        return 0;
+    }
+
+    /* Both arriving in the same poll is a genuine tie -- there is no
+     * magnitude to compare on a rocker. Prefer vertical: the menus this
+     * mostly affects scroll that way. */
+    if (*held == PSP_AXIS_NONE)
+        *held = vert ? PSP_AXIS_VERT : PSP_AXIS_HORZ;
+
+    return (*held == PSP_AXIS_VERT) ? vert : horz;
 }
 
 #endif /* _ANALOG_PSP_H_ */
