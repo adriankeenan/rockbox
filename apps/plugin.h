@@ -1057,7 +1057,15 @@ struct plugin_header {
 };
 
 #ifdef PLUGIN
-#if (CONFIG_PLATFORM & PLATFORM_NATIVE)
+/* Really a question of CONFIG_BINFMT -- raw fixed-address loading needs the
+ * header in its own section so it lands at offset 0 where lc_open() reads it,
+ * and needs the real load/end addresses -- rather than of CONFIG_PLATFORM.
+ * PLATFORM_NATIVE was a correct proxy only until PSP (PLATFORM_HOSTED) became
+ * the first hosted BINFMT_ROCK target. lib/rbcodec/codecs/codecs.h already
+ * carries the same correction for codecs. Getting this wrong is silent: the
+ * .rock builds fine, but starts with code instead of a header, so every
+ * plugin fails its magic/target_id check at load time. */
+#if (CONFIG_PLATFORM & PLATFORM_NATIVE) || (CONFIG_BINFMT == BINFMT_ROCK)
 extern unsigned char plugin_start_addr[];
 extern unsigned char plugin_end_addr[];
 #define PLUGIN_HEADER \

@@ -128,7 +128,6 @@ in PPSSPP.
 
 **Known issues**
 
-- Plugins are disabled -- they need per-plugin PSP keymap entries first.
 - Analog stick input can be imprecise.
 
 **Installation**

@@ -58,11 +58,19 @@ $(BUILDDIR)/apps/plugins/bitmaps/remote_native/%.c: $(ROOTDIR)/apps/plugins/bitm
 	$(call PRINTS,BMP2RB $(<F))$(BMP2RB_REMOTENATIVE) -b -h $(PBMPINCDIR) $< > $@
 
 ifdef APP_TYPE
-# Bitmaps must be explicitly Position independent to avoid linker warnings
+# Bitmaps must be explicitly Position independent to avoid linker warnings.
+#
+# Except on psp-app: APP_TYPE is not really the question here, whether the
+# plugins are shared objects is. PSP plugins are CONFIG_BINFMT == BINFMT_ROCK,
+# linked at a fixed address and read straight into pluginbuf rather than
+# dlopen'd, and psp-gcc cannot generate PIC for its -mabi=eabi at all -- so
+# asking for it is both unnecessary and a hard compile error.
+ifeq (,$(findstring psp-app,$(APP_TYPE)))
 $(BUILDDIR)/apps/plugins/bitmaps/native/%.o: CFLAGS += -fPIC
 $(BUILDDIR)/apps/plugins/bitmaps/mono/%.o: CFLAGS += -fPIC
 $(BUILDDIR)/apps/plugins/bitmaps/remote_mono/%.o: CFLAGS += -fPIC
 $(BUILDDIR)/apps/plugins/bitmaps/remote_native/%.o: CFLAGS += -fPIC
+endif
 endif
 
 endif

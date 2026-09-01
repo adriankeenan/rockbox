@@ -521,6 +521,18 @@
 #define GBN_BUTTON_CONTEXT          BUTTON_X
 #define GBN_BUTTON_NEXT_VAR         BUTTON_Y
 
+#elif CONFIG_KEYPAD == PSP_PAD
+#define GBN_BUTTON_UP               BUTTON_UP
+#define GBN_BUTTON_DOWN             BUTTON_DOWN
+#define GBN_BUTTON_LEFT             BUTTON_LEFT
+#define GBN_BUTTON_RIGHT            BUTTON_RIGHT
+#define GBN_BUTTON_RETREAT          BUTTON_L
+#define GBN_BUTTON_ADVANCE          BUTTON_R
+#define GBN_BUTTON_MENU             BUTTON_CIRCLE
+#define GBN_BUTTON_PLAY             BUTTON_CROSS
+#define GBN_BUTTON_CONTEXT          BUTTON_TRIANGLE
+#define GBN_BUTTON_NEXT_VAR         BUTTON_SQUARE
+
 #elif (CONFIG_KEYPAD == CTRU_PAD)
 #define  GBN_BUTTON_UP              BUTTON_UP
 #define  GBN_BUTTON_DOWN            BUTTON_DOWN
