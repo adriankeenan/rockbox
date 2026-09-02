@@ -30,6 +30,7 @@
 
 static bool hold_state = false;
 
+#if PSP_ENABLE_ANALOG_NUB
 /* Analog stick: Lx/Ly are 0-255, resting near the middle. Tilting past the
  * threshold synthesizes the same BUTTON_UP/DOWN/LEFT/RIGHT bits as the
  * D-pad, so the stick works as an alternate input with no keymap
@@ -43,11 +44,12 @@ static int analog_center_x = PSP_ANALOG_CENTER;
 static int analog_center_y = PSP_ANALOG_CENTER;
 static int analog_state_x = 0;
 static int analog_state_y = 0;
-
-/* Which axis each input source is currently attributed to; see
- * psp_collapse_axis() in analog-psp.h. */
-static int dpad_axis = PSP_AXIS_NONE;
 static int nub_axis = PSP_AXIS_NONE;
+#endif
+
+/* Which axis the D-pad is currently attributed to; see psp_collapse_axis()
+ * in analog-psp.h. */
+static int dpad_axis = PSP_AXIS_NONE;
 
 /* Last mask handed back, so a failed peek can repeat it instead of
  * reporting a full release. */
@@ -80,10 +82,12 @@ int button_read_device(int *data)
         if (++peek_failures <= MAX_PEEK_FAILURES)
             return last_key;
 
+#if PSP_ENABLE_ANALOG_NUB
         analog_state_x = 0;
         analog_state_y = 0;
-        dpad_axis = PSP_AXIS_NONE;
         nub_axis = PSP_AXIS_NONE;
+#endif
+        dpad_axis = PSP_AXIS_NONE;
         last_key = BUTTON_NONE;
         return BUTTON_NONE;
     }
@@ -109,6 +113,7 @@ int button_read_device(int *data)
     if (pad.Buttons & PSP_CTRL_SELECT)   key |= BUTTON_SELECT;
     if (pad.Buttons & PSP_CTRL_HOME)     key |= BUTTON_HOME;
 
+#if PSP_ENABLE_ANALOG_NUB
     /* Ly grows downward on the PSP, so negative deflection is up. */
     int dx = psp_axis_direction((int)pad.Lx - analog_center_x, &analog_state_x);
     int dy = psp_axis_direction((int)pad.Ly - analog_center_y, &analog_state_y);
@@ -125,8 +130,10 @@ int button_read_device(int *data)
      * the axis forever and lock the D-pad out of it entirely: a worse bug
      * than the one being fixed here. Keeping the latches separate means the
      * D-pad's always releases, because the D-pad always does. */
-    key |= psp_collapse_axis(dpad, &dpad_axis);
     key |= psp_collapse_axis(nub, &nub_axis);
+#endif
+
+    key |= psp_collapse_axis(dpad, &dpad_axis);
 
     last_key = key;
     return key;
@@ -134,10 +141,14 @@ int button_read_device(int *data)
 
 void button_init_device(void)
 {
+#if PSP_ENABLE_ANALOG_NUB
     int sum_x = 0, sum_y = 0, samples = 0;
     int i;
+#endif
 
     sceCtrlSetSamplingCycle(0);
+
+#if PSP_ENABLE_ANALOG_NUB
     /* ANALOG (not DIGITAL) mode: DIGITAL mode leaves Lx/Ly unpopulated. */
     sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
 
@@ -180,6 +191,12 @@ void button_init_device(void)
         analog_center_x = psp_axis_calibrate(sum_x / samples);
         analog_center_y = psp_axis_calibrate(sum_y / samples);
     }
+#else
+    /* DIGITAL mode: nothing reads Lx/Ly, and this skips both the analog
+     * sampling the nub needed and the boot-time delay spent waiting for the
+     * mode switch to take effect. */
+    sceCtrlSetSamplingMode(PSP_CTRL_MODE_DIGITAL);
+#endif
 }
 
 bool button_hold(void)

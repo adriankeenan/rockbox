@@ -128,7 +128,11 @@ in PPSSPP.
 
 **Known issues**
 
-- Analog stick input can be imprecise.
+- The analog stick is disabled. It only ever duplicated the D-pad, and these
+  nubs drift far enough at rest to steer menus and back out of them on their
+  own -- hysteresis and boot-time centring were not enough to make that safe.
+  Re-enabling it needs a persisted, per-device deadzone; the switch is
+  `PSP_ENABLE_ANALOG_NUB` in `firmware/target/hosted/psp/analog-psp.h`.
 
 **Installation**
 
@@ -140,7 +144,7 @@ Copy the release zip contents onto the memory stick root, giving
 
 | Button | Action |
 |---|---|
-| D-pad / Analog stick | Navigate / seek |
+| D-pad | Navigate / seek |
 | Cross | Select / Play-Pause |
 | Circle | Back / Browse (WPS) |
 | Triangle | Menu / context |
@@ -150,4 +154,4 @@ Copy the release zip contents onto the memory stick root, giving
 | Home | Hold: power off |
 | L / R | As D-pad Left/Right (WPS): skip track, hold to seek |
 | Volume Up / Volume Down | System-only |
-| Select | Unbound |
+| Select, Analog stick | Unbound |

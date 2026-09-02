@@ -21,20 +21,33 @@
 #ifndef _ANALOG_PSP_H_
 #define _ANALOG_PSP_H_
 
-/* Producing Rockbox direction buttons on the PSP: turning the analog nub into
- * them, and collapsing a two-direction press down to one.
+/* Producing Rockbox direction buttons on the PSP: collapsing a two-direction
+ * press down to one, and (when enabled) turning the analog nub into direction
+ * buttons at all.
  *
  * This lives in its own dependency-free header so the decision logic can be
  * unit-tested on the host without a PSP toolchain -- see the test referenced
  * from button-psp.c.
  *
- * The nub bits are OR'd into the same BUTTON_LEFT/RIGHT/UP/DOWN as the D-pad,
- * and in button_context_standard BUTTON_LEFT is a plain-press
- * ACTION_STD_CANCEL (apps/keymaps/keymap-psp.c). A single spurious LEFT is
- * therefore "back out of this menu", so the nub must not chatter: a bare
- * threshold comparison toggles freely while the nub rests near it, which is
- * exactly what a worn or off-centre nub does. Hence hysteresis, plus a
- * calibrated centre rather than assuming the nub rests at 128. */
+ * The nub is currently switched off; see PSP_ENABLE_ANALOG_NUB below. Only
+ * psp_collapse_axis() is live, and that is for the D-pad. */
+
+/* Whether the analog nub also drives BUTTON_UP/DOWN/LEFT/RIGHT.
+ *
+ * Off. The nub bits are OR'd into the same buttons as the D-pad, and in
+ * button_context_standard BUTTON_LEFT is a plain-press ACTION_STD_CANCEL
+ * (apps/keymaps/keymap-psp.c) -- so a single spurious LEFT backs out of
+ * whatever menu you are in. The hysteresis and boot-time centring below were
+ * an attempt to make that safe, and they are not enough on real hardware:
+ * these nubs wear, drift with temperature and rest well off centre, so a nub
+ * that is merely resting still crosses the threshold often enough to be
+ * disruptive. Since the nub only ever duplicated the D-pad, the honest
+ * trade is to drop it rather than ship an input that fires by itself.
+ *
+ * Kept behind a switch rather than deleted because reviving it needs
+ * per-device calibration (a settings-screen deadzone, persisted), not this
+ * code rewritten. */
+#define PSP_ENABLE_ANALOG_NUB 0
 
 /* Deflection from the calibrated centre needed to assert a direction. */
 #define PSP_ANALOG_ENTER 64
