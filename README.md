@@ -60,6 +60,7 @@ Good luck! 🙏
 | Target | `--target=` | CFW |
 |---|---|---|
 | [Anbernic RG35XX Pro](#anbernic-rg35xx-pro-on-knulli) | `rg35xxpro` | KNULLI |
+| [Sony PSP](#sony-psp) | `psp` | Homebrew (CFW/HEN) |
 
 ### Anbernic RG35XX Pro on Knulli
 
@@ -106,3 +107,51 @@ EmulationStation's Ports.
 | Power | System-only |
 | L2, R2, analog stick click | Unbound |
 | FN | No hardware control; keyboard-only |
+
+### Sony PSP
+
+Runs as PSP homebrew, installed into `PSP/GAME` and launched from the XMB's
+Game menu. Needs Custom Firmware or a Homebrew Enabler; also runs directly
+in PPSSPP.
+
+**Hardware**
+
+- SoC: Sony/NEC "Allegrex" (MIPS, single core)
+- Screen: 4.3" 480x272. Rockbox renders at 320x240 (QVGA, for theme
+  compatibility) unscaled and centered, with black borders on all sides
+  rather than upscaled.
+- Colour depth: 16-bit (RGB565)
+- Audio: pspaudiolib (`sceAudio`). Volume handled by the system, rockbox
+  output set to 100% and volume keys mapped out. Internal speaker and 3.5mm
+  jack work without issues.
+- Power: battery percentage and charging state read via `scePower`.
+
+**Known issues**
+
+- The analog stick is disabled. It only ever duplicated the D-pad, and these
+  nubs drift far enough at rest to steer menus and back out of them on their
+  own -- hysteresis and boot-time centring were not enough to make that safe.
+  Re-enabling it needs a persisted, per-device deadzone; the switch is
+  `PSP_ENABLE_ANALOG_NUB` in `firmware/target/hosted/psp/analog-psp.h`.
+
+**Installation**
+
+Copy the release zip contents onto the memory stick root, giving
+`ms0:/PSP/GAME/ROCKBOX/EBOOT.PBP` alongside its `fonts/`, `themes/`,
+`codecs/`, etc. Launch "Rockbox" from the XMB's Game menu.
+
+**Keymap**
+
+| Button | Action |
+|---|---|
+| D-pad | Navigate / seek |
+| Cross | Select / Play-Pause |
+| Circle | Back / Browse (WPS) |
+| Triangle | Menu / context |
+| Square | Hotkey / WPS shortcut |
+| Start | Stop (hold) |
+| Square + Start | Keylock |
+| Home | Hold: power off |
+| L / R | As D-pad Left/Right (WPS): skip track, hold to seek |
+| Volume Up / Volume Down | System-only |
+| Select, Analog stick | Unbound |

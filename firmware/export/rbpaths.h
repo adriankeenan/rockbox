@@ -41,7 +41,7 @@
 #if !defined(APPLICATION) || defined(SAMSUNG_YPR0) || defined(SAMSUNG_YPR1) || \
     defined(DX50) || defined(DX90) || defined(SONY_NWZ_LINUX) || \
     defined(HIBY_LINUX) || defined(FIIO_M3K_LINUX) || defined(CTRU) || \
-    defined(RG35XX_PRO)
+    defined(PSP) || defined(RG35XX_PRO)
 
 #define HOME_DIR "/"
 

@@ -1034,6 +1034,77 @@ devkitarmcc () {
     rbdir="/3ds/.rockbox"
 }
 
+pspsdkcc () {
+    if [ -z "$PSPDEV" ]; then
+        echo "ERROR: You need a PSPSDK toolchain installed and have the PSPDEV"
+        echo "environment variable point to the root of the PSPSDK installation."
+        echo "Get it from https://github.com/pspdev/pspdev (a prebuilt toolchain"
+        echo "image is also published at ghcr.io/pspdev/pspdev)."
+        exit
+    fi
+
+    if [ ! -e "$PSPDEV/bin/psp-gcc" ]; then
+        echo "ERROR: psp-gcc not found under \$PSPDEV/bin. Check your PSPSDK install."
+        exit
+    fi
+
+    arch="mips"
+
+    CC=$PSPDEV/bin/psp-gcc
+    CPP=$PSPDEV/bin/psp-cpp
+    LD=$PSPDEV/bin/psp-ld
+    AR=$PSPDEV/bin/psp-gcc-ar
+    AS=$PSPDEV/bin/psp-as
+    OC=$PSPDEV/bin/psp-objcopy
+    WINDRES=windres
+    DLLTOOL=dlltool
+    DLLWRAP=dllwrap
+    RANLIB=$PSPDEV/bin/psp-gcc-ranlib
+
+    GCCOPTS=`echo $CCOPTS | sed -e s/\ -ffreestanding// -e s/\ -nostdlib//`
+
+    if [ "yes" = "$use_debug" ]; then
+        GCCOPTS=`echo $GCCOPTS | sed -e s/\ -Os/\ -Og/`
+    fi
+
+    GCCOPTS="$GCCOPTS -G0 -Umips -I$PSPDEV/psp/sdk/include -I$PSPDEV/psp/include"
+
+    # libpspkernel.a's SysclibForKernel stubs bundle re-exports of several
+    # plain libc functions (memcpy/memset/memcmp/memmove/setjmp/longjmp/
+    # snprintf/strtol/strtoul, ...) in the same objects as the sceKernel*
+    # syscalls we actually need from it. Since -lpspkernel is scanned
+    # before the implicit trailing -lc, those bogus unresolved-syscall
+    # versions would otherwise win over newlib's real implementations --
+    # explicit -lc first makes sure the real ones get resolved before
+    # -lpspkernel's objects are ever pulled in.
+    #
+    # -lpspuser must come before -lpspkernel too, and for a similar but
+    # more serious reason: libpspkernel.a's stub objects also bundle
+    # re-exports of many sceKernel* functions (thread/module management,
+    # cache maintenance, ...) that are really meant to be resolved from
+    # the *User* NID library. PPSSPP resolves either variant permissively,
+    # but a real PSP's module loader refuses to satisfy a "ForKernel"
+    # import for an unprivileged (non-kernel-mode) homebrew EBOOT and
+    # fails the whole load with 0x8002013C (LIBRARY_NOTFOUND) -- this
+    # never showed up under PPSSPP-only testing. Linking -lpspuser first
+    # makes sure --allow-multiple-definition picks the correct ForUser
+    # stub whenever both libs define the same symbol name.
+    LDOPTS="-L$PSPDEV/psp/sdk/lib -lc -lpspaudiolib -lpspaudio -lpspctrl -lpspgu"
+    LDOPTS="$LDOPTS -lpspgum -lpspdisplay -lpsppower -lpsprtc -lpspuser -lpspkernel -lm"
+
+    GLOBAL_LDOPTS="$GLOBAL_LDOPTS -Wl,--allow-multiple-definition"
+
+    # Codecs/plugins link against Rockbox's own codec_crt0.o entry point
+    # instead of a real main(); suppress psp-gcc's own default crt0 there
+    # (but keep automatic libc/libgcc linking, unlike -nostdlib).
+    SHARED_LDFLAGS="-nostartfiles"
+
+    ARG_PREFIX="romfs"
+
+    extradefines="-D__PSP__"
+    rbdir="/PSP/GAME/ROCKBOX"
+}
+
 
 do_bootloader() {
       appsdir='$(ROOTDIR)/bootloader'
@@ -1810,6 +1881,9 @@ cat <<EOF
                                                  ==Hidizs==
  ==Nintendo==                                    302) AP80 Pro Max (WIP)
  290) Nintendo 3DS (WIP)
+
+ ==Sony==
+ 501) Sony PSP (WIP)
 
 EOF
 
@@ -3415,7 +3489,10 @@ fi
     ;;
 
    500|rg35xxpro)
-    target_id=500
+    # Fork-reserved target_id range (250-255), not 500: genlang writes
+    # TARGET_ID as a single byte into every .lng header, so anything over
+    # 255 silently breaks language loading.  See firmware/export/config.h.
+    target_id=250
     application="yes"
     modelname="rg35xxpro"
     app_type="sdl-app"
@@ -4265,6 +4342,37 @@ fi
     plugins="yes"
     t_cpu="hosted"
     t_manufacturer="ctru"
+    t_model="app"
+    ;;
+
+    501|psp)
+    # Fork-reserved target_id range (250-255), not 501: genlang writes
+    # TARGET_ID as a single byte into every .lng header, so anything over
+    # 255 silently breaks language loading.  See firmware/export/config.h.
+    target_id=251
+    application="yes"
+    modelname="psp"
+    app_type="psp-app"
+    target="PSP"
+    # NOTE: for PLATFORM_HOSTED targets, firmware/core_alloc.c statically
+    # allocates the main audio buffer as (memory-1)*1MB. The PSP-1000/
+    # "Phat" has only 32MB of RAM total (kernel/video/etc. reserve several
+    # MB of that), so `memory` here is deliberately far below the device's
+    # nameplate RAM figure -- unlike native targets, this is a real static
+    # BSS allocation, not "whatever's physically present".
+    memory=8
+    uname=`uname`
+    pspsdkcc
+    tool="cp "
+    boottool="cp "
+    bmp2rb_mono="$rootdir/tools/bmp2rb -f 0"
+    bmp2rb_native="$rootdir/tools/bmp2rb -f 4"
+    output="rockbox.elf"
+    bootoutput="rockbox"
+    appextra="recorder:gui"
+    plugins="yes"
+    t_cpu="hosted"
+    t_manufacturer="psp"
     t_model="app"
     ;;
 

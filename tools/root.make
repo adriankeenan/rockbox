@@ -184,6 +184,10 @@ else # core
     include $(ROOTDIR)/packaging/ctru/ctru.make
   endif
 
+  ifneq (,$(findstring psp-app, $(APP_TYPE)))
+    include $(ROOTDIR)/packaging/psp/psp.make
+  endif
+
 endif # bootloader
 
 # Include makefile for flashing/debugging with OpenOCD & GDB

@@ -15,7 +15,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: ghcr.io/adriankeenan/rockbox-env:latest
+    container: ghcr.io/adriankeenan/rockbox-env:psp
     permissions:
       contents: read
     strategy:
@@ -33,6 +33,10 @@ jobs:
             configure_target: rg35xxpro
             zip_target: port-zip
             zip_path: build/rockbox-rg35xxpro.zip
+          - name: Sony PSP
+            configure_target: psp
+            zip_target: zip
+            zip_path: build/rockbox.zip
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

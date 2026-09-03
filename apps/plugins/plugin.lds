@@ -130,6 +130,22 @@ OUTPUT_FORMAT(elf32-littlemips)
 #define DRAMORIG STM32_SDRAM1_BASE
 #define DRAMSIZE (MEMORYSIZE * 0x100000) - PLUGIN_BUFFER_SIZE - CODEC_SIZE
 
+#elif defined(PSP)
+/* PLATFORM_HOSTED, not a real memory-mapped DRAM region: codecbuf and
+ * pluginbuf (apps/codecs.c, apps/plugin.c) are plain global arrays in the
+ * already-linked main binary, so their origins are discovered via nm and
+ * force-included as generated headers rather than being config.h constants
+ * like every other branch here -- see packaging/psp/psp.make. Only one of
+ * the two is ever wanted per preprocessing run: codec.link is generated
+ * with -DCODEC and plugin.link without it. */
+#ifdef CODEC
+#define CODEC_ORIGIN PSP_CODEC_ORIGIN
+#else
+#define PLUGIN_ORIGIN PSP_PLUGIN_ORIGIN
+#endif
+#define DRAMORIG 0
+#define DRAMSIZE 0
+
 #else
 # error "DRAM/IRAM memory map not defined!"
 #endif

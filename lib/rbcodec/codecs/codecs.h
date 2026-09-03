@@ -237,8 +237,12 @@ struct codec_header {
 };
 
 #ifdef CODEC
-#if (CONFIG_PLATFORM & PLATFORM_NATIVE)
-/* plugin_* is correct, codecs use the plugin linker script */
+#if (CONFIG_PLATFORM & PLATFORM_NATIVE) || (CONFIG_BINFMT == BINFMT_ROCK)
+/* plugin_* is correct, codecs use the plugin linker script. This is
+ * really a question of CONFIG_BINFMT (raw fixed-address loading vs. a
+ * real ELF/shared-object loader) rather than CONFIG_PLATFORM, but only
+ * PLATFORM_NATIVE targets used BINFMT_ROCK until PSP (PLATFORM_HOSTED)
+ * came along, so check both. */
 extern unsigned char plugin_start_addr[];
 extern unsigned char plugin_end_addr[];
 /* decoders */

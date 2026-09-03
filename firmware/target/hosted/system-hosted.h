@@ -23,9 +23,30 @@
 
 #ifndef __PCTOOL__
 
+#if defined(PSP)
+/* Only PSP actually loads code at runtime (CONFIG_BINFMT == BINFMT_ROCK,
+ * via lc-psp.c's raw memcpy-style loader) among hosted targets, so it's
+ * the only one where a real icache sync is needed after writing fresh
+ * code into RAM -- MIPS doesn't keep icache/dcache coherent on its own. */
+#include <psputils.h>
+static inline void commit_dcache(void)
+{
+    sceKernelDcacheWritebackAll();
+}
+static inline void commit_discard_dcache(void)
+{
+    sceKernelDcacheWritebackInvalidateAll();
+}
+static inline void commit_discard_idcache(void)
+{
+    sceKernelDcacheWritebackInvalidateAll();
+    sceKernelIcacheInvalidateAll();
+}
+#else
 static inline void commit_dcache(void) {}
 static inline void commit_discard_dcache(void) {}
 static inline void commit_discard_idcache(void) {}
+#endif
 
 static inline void core_sleep(void)
 {

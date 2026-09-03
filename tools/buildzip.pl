@@ -428,6 +428,13 @@ sub buildzip {
         glob_copy("icon.icn", "$temp_dir/");
         glob_copy("rockbox.3dsx", "$temp_dir/");
     }
+    # the XMB launches EBOOT.PBP from the same dir as the rest of the install.
+    # It must ship in the zip alongside codecs/: BINFMT_ROCK codecs are linked
+    # at an address taken from this exact binary, so an EBOOT and a codecs/
+    # from different builds silently fail every codec load.
+    if ($modelname =~ /psp/) {
+        glob_copy("EBOOT.PBP", "$temp_dir/");
+    }
 
     glob_mkdir("$temp_dir/langs");
     glob_mkdir("$temp_dir/rocks");

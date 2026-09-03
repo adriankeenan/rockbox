@@ -38,7 +38,12 @@ struct _reent * _EXFUN(__getreent, (void)) { return NULL; }
 
 enum codec_status codec_start(enum codec_entry_call_reason reason)
 {
-#if (CONFIG_PLATFORM & PLATFORM_NATIVE)
+/* Raw fixed-address loading (BINFMT_ROCK) doesn't zero-fill BSS the way a
+ * real ELF loader would (objcopy -O binary drops NOLOAD sections from the
+ * file entirely), so it still needs to be cleared here, same as any
+ * PLATFORM_NATIVE target -- BINFMT_ROCK just wasn't possible on any
+ * PLATFORM_HOSTED target before PSP. */
+#if (CONFIG_PLATFORM & PLATFORM_NATIVE) || (CONFIG_BINFMT == BINFMT_ROCK)
     if (reason == CODEC_LOAD)
     {
 #ifdef USE_IRAM

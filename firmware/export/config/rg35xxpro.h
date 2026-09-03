@@ -12,10 +12,10 @@
 
 #define HAVE_FPU
 
-/* For Rolo and boot loader.  Deliberately far above upstream's current
-   sequential range (mid-120s) since this port isn't upstreamed and won't be
-   assigned a real number by that process. */
-#define MODEL_NUMBER 500
+/* For Rolo and boot loader.  Allocated from the fork-reserved MODEL_NUMBER
+   range documented at the top of firmware/export/config.h -- this port isn't
+   upstreamed and won't be assigned a real number by that process. */
+#define MODEL_NUMBER 10000
 
 #define MODEL_NAME   "Anbernic RG35XX Pro"
 
