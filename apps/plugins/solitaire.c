@@ -742,6 +742,7 @@ CONFIG_KEYPAD == MROBE500_PAD
 #   define HK_CUR2STACK      "B"
 #   define HK_REM2STACK      "R"
 
+<<<<<<< HEAD
 #elif CONFIG_KEYPAD == RG35XX_PRO_PAD
 #   define SOL_QUIT          BUTTON_START
 #   define SOL_UP            BUTTON_UP
@@ -760,6 +761,9 @@ CONFIG_KEYPAD == MROBE500_PAD
 #   define HK_REM2STACK      "R"
 
 #elif (CONFIG_KEYPAD == CTRU_PAD)
+=======
+#elif (CONFIG_KEYPAD == N3DS_PAD)
+>>>>>>> upstream/master
 #   define SOL_QUIT         BUTTON_BACK
 #   define SOL_UP           BUTTON_UP
 #   define SOL_DOWN         BUTTON_DOWN

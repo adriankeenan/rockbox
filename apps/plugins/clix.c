@@ -324,6 +324,7 @@
 #define CLIX_BUTTON_UP          BUTTON_UP
 #define CLIX_BUTTON_DOWN        BUTTON_DOWN
 
+<<<<<<< HEAD
 #elif (CONFIG_KEYPAD == RG35XX_PRO_PAD)
 #define CLIX_BUTTON_QUIT        BUTTON_START
 #define CLIX_BUTTON_LEFT        BUTTON_LEFT
@@ -333,6 +334,9 @@
 #define CLIX_BUTTON_DOWN        BUTTON_DOWN
 
 #elif (CONFIG_KEYPAD == CTRU_PAD)
+=======
+#elif (CONFIG_KEYPAD == N3DS_PAD)
+>>>>>>> upstream/master
 #define CLIX_BUTTON_QUIT        BUTTON_BACK
 #define CLIX_BUTTON_LEFT        BUTTON_LEFT
 #define CLIX_BUTTON_RIGHT       BUTTON_RIGHT

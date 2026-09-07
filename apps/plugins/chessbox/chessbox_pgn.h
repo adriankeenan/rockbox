@@ -599,6 +599,7 @@
 #define CB_SCROLL_RIGHT (BUTTON_RIGHT|BUTTON_REPEAT)
 #define CB_RC_QUIT      BUTTON_START
 
+<<<<<<< HEAD
 #elif CONFIG_KEYPAD == RG35XX_PRO_PAD
 #define CB_SELECT       BUTTON_A
 #define CB_UP           BUTTON_UP
@@ -616,6 +617,9 @@
 #define CB_RC_QUIT      BUTTON_START
 
 #elif CONFIG_KEYPAD == CTRU_PAD
+=======
+#elif CONFIG_KEYPAD == N3DS_PAD
+>>>>>>> upstream/master
 #define CB_SELECT       BUTTON_SELECT
 #define CB_UP           BUTTON_UP
 #define CB_DOWN         BUTTON_DOWN

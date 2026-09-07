@@ -509,6 +509,7 @@
 #define GBN_BUTTON_CONTEXT          BUTTON_X
 #define GBN_BUTTON_NEXT_VAR         BUTTON_Y
 
+<<<<<<< HEAD
 #elif CONFIG_KEYPAD == RG35XX_PRO_PAD
 #define GBN_BUTTON_UP               BUTTON_UP
 #define GBN_BUTTON_DOWN             BUTTON_DOWN
@@ -522,6 +523,9 @@
 #define GBN_BUTTON_NEXT_VAR         BUTTON_Y
 
 #elif (CONFIG_KEYPAD == CTRU_PAD)
+=======
+#elif (CONFIG_KEYPAD == N3DS_PAD)
+>>>>>>> upstream/master
 #define  GBN_BUTTON_UP              BUTTON_UP
 #define  GBN_BUTTON_DOWN            BUTTON_DOWN
 #define  GBN_BUTTON_LEFT            BUTTON_LEFT

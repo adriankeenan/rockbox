@@ -417,6 +417,7 @@
 #define PACMAN_COIN    BUTTON_A
 #define PACMAN_MENU    BUTTON_START
 
+<<<<<<< HEAD
 #elif CONFIG_KEYPAD == RG35XX_PRO_PAD
 
 #define PACMAN_UP      BUTTON_UP
@@ -429,6 +430,9 @@
 #define PACMAN_MENU    BUTTON_START
 
 #elif CONFIG_KEYPAD == CTRU_PAD
+=======
+#elif CONFIG_KEYPAD == N3DS_PAD
+>>>>>>> upstream/master
 
 #define PACMAN_UP       BUTTON_UP
 #define PACMAN_DOWN     BUTTON_DOWN

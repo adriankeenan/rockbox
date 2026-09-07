@@ -206,6 +206,7 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define ACTION2     BUTTON_B
 #define ACTIONTEXT  "A"
 
+<<<<<<< HEAD
 #elif CONFIG_KEYPAD == RG35XX_PRO_PAD
 #define QUIT        BUTTON_START
 #define ACTION      BUTTON_A
@@ -213,6 +214,9 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define ACTIONTEXT  "A"
 
 #elif CONFIG_KEYPAD == CTRU_PAD
+=======
+#elif CONFIG_KEYPAD == N3DS_PAD
+>>>>>>> upstream/master
 #define QUIT        BUTTON_BACK
 #define ACTION      BUTTON_SELECT
 #define ACTION2     BUTTON_MENU

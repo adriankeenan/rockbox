@@ -335,6 +335,7 @@
 #define MIDI_VOL_DOWN     BUTTON_DOWN
 #define MIDI_PLAYPAUSE    BUTTON_A
 
+<<<<<<< HEAD
 #elif CONFIG_KEYPAD == RG35XX_PRO_PAD
 #define MIDI_QUIT         BUTTON_START
 #define MIDI_FFWD         BUTTON_RIGHT
@@ -344,6 +345,9 @@
 #define MIDI_PLAYPAUSE    BUTTON_A
 
 #elif CONFIG_KEYPAD == CTRU_PAD
+=======
+#elif CONFIG_KEYPAD == N3DS_PAD
+>>>>>>> upstream/master
 #define MIDI_QUIT       BUTTON_BACK
 #define MIDI_FFWD       BUTTON_RIGHT
 #define MIDI_REWIND     BUTTON_LEFT

@@ -40,8 +40,12 @@
 /* NOTE:  target-specific hosted HOME_DIR resides in filesystem-app.c */
 #if !defined(APPLICATION) || defined(SAMSUNG_YPR0) || defined(SAMSUNG_YPR1) || \
     defined(DX50) || defined(DX90) || defined(SONY_NWZ_LINUX) || \
+<<<<<<< HEAD
     defined(HIBY_LINUX) || defined(FIIO_M3K_LINUX) || defined(CTRU) || \
     defined(RG35XX_PRO)
+=======
+    defined(HIBY_LINUX) || defined(FIIO_M3K_LINUX) || defined(N3DS)
+>>>>>>> upstream/master
 
 #define HOME_DIR "/"
 
@@ -88,8 +92,12 @@
 #if defined(APPLICATION) && \
         !(defined(SAMSUNG_YPR0) || defined(SAMSUNG_YPR1) || \
           defined(DX50) || defined(DX90) || defined(SONY_NWZ_LINUX) || \
+<<<<<<< HEAD
           defined(HIBY_LINUX) || defined(FIIO_M3K_LINUX) || defined(CTRU) || \
           defined(RG35XX_PRO))
+=======
+          defined(HIBY_LINUX) || defined(FIIO_M3K_LINUX) || defined(N3DS))
+>>>>>>> upstream/master
 
 #define PLUGIN_DATA_DIR          ROCKBOX_DIR "/rocks.data"
 #define PLUGIN_GAMES_DATA_DIR    PLUGIN_DATA_DIR

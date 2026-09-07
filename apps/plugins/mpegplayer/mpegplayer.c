@@ -497,6 +497,7 @@ CONFIG_KEYPAD == SANSA_M200_PAD
 #define MPEG_RW         BUTTON_LEFT
 #define MPEG_FF         BUTTON_RIGHT
 
+<<<<<<< HEAD
 #elif CONFIG_KEYPAD == RG35XX_PRO_PAD
 #define MPEG_MENU       BUTTON_START
 #define MPEG_STOP       BUTTON_X
@@ -507,6 +508,9 @@ CONFIG_KEYPAD == SANSA_M200_PAD
 #define MPEG_FF         BUTTON_RIGHT
 
 #elif CONFIG_KEYPAD == CTRU_PAD
+=======
+#elif CONFIG_KEYPAD == N3DS_PAD
+>>>>>>> upstream/master
 #define MPEG_MENU       BUTTON_MENU
 #define MPEG_PAUSE      BUTTON_SELECT
 #define MPEG_STOP       BUTTON_POWER

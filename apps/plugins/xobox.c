@@ -362,6 +362,7 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define DOWN    BUTTON_DOWN
 #define PAUSE   BUTTON_A
 
+<<<<<<< HEAD
 #elif CONFIG_KEYPAD == RG35XX_PRO_PAD
 
 #define QUIT    BUTTON_START
@@ -372,6 +373,9 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define PAUSE   BUTTON_A
 
 #elif CONFIG_KEYPAD == CTRU_PAD
+=======
+#elif CONFIG_KEYPAD == N3DS_PAD
+>>>>>>> upstream/master
 
 #define QUIT  BUTTON_BACK
 #define LEFT  BUTTON_LEFT

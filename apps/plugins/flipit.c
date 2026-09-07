@@ -510,6 +510,7 @@
 #define FLIPIT_STEP_BY_STEP BUTTON_Y
 #define FLIPIT_TOGGLE       BUTTON_A
 
+<<<<<<< HEAD
 #elif CONFIG_KEYPAD == RG35XX_PRO_PAD
 
 #define FLIPIT_LEFT         BUTTON_LEFT
@@ -525,6 +526,9 @@
 #define FLIPIT_TOGGLE       BUTTON_A
 
 #elif CONFIG_KEYPAD == CTRU_PAD
+=======
+#elif CONFIG_KEYPAD == N3DS_PAD
+>>>>>>> upstream/master
 
 #define FLIPIT_LEFT         BUTTON_LEFT
 #define FLIPIT_RIGHT        BUTTON_RIGHT

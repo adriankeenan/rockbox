@@ -587,6 +587,7 @@
 #define TV_LINE_DOWN    BUTTON_L
 #define TV_BOOKMARK     BUTTON_A
 
+<<<<<<< HEAD
 #elif CONFIG_KEYPAD == RG35XX_PRO_PAD
 #define TV_QUIT         BUTTON_START
 #define TV_SCROLL_UP    BUTTON_UP
@@ -600,6 +601,9 @@
 #define TV_BOOKMARK     BUTTON_A
 
 #elif CONFIG_KEYPAD == CTRU_PAD
+=======
+#elif CONFIG_KEYPAD == N3DS_PAD
+>>>>>>> upstream/master
 #define TV_QUIT         BUTTON_BACK
 #define TV_SCROLL_UP    BUTTON_UP
 #define TV_SCROLL_DOWN  BUTTON_DOWN

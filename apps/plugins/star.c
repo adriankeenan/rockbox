@@ -687,6 +687,7 @@
 #define STAR_LEVEL_DOWN_NAME "L"
 #define STAR_LEVEL_REPEAT_NAME "B"
 
+<<<<<<< HEAD
 #elif CONFIG_KEYPAD == RG35XX_PRO_PAD
 
 #define STAR_QUIT           BUTTON_START
@@ -705,6 +706,9 @@
 #define STAR_LEVEL_REPEAT_NAME "B"
 
 #elif CONFIG_KEYPAD == CTRU_PAD
+=======
+#elif CONFIG_KEYPAD == N3DS_PAD
+>>>>>>> upstream/master
 
 #define STAR_QUIT           BUTTON_BACK
 #define STAR_LEFT           BUTTON_LEFT

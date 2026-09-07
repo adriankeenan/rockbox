@@ -482,6 +482,7 @@
 #define ROCKBLOX_DROP          BUTTON_A
 #define ROCKBLOX_RESTART       BUTTON_B
 
+<<<<<<< HEAD
 #elif CONFIG_KEYPAD == RG35XX_PRO_PAD
 
 #define ROCKBLOX_OFF           BUTTON_START
@@ -495,6 +496,9 @@
 #define ROCKBLOX_RESTART       BUTTON_B
 
 #elif CONFIG_KEYPAD == CTRU_PAD
+=======
+#elif CONFIG_KEYPAD == N3DS_PAD
+>>>>>>> upstream/master
 
 #define ROCKBLOX_OFF           BUTTON_BACK
 #define ROCKBLOX_ROTATE_CCW    BUTTON_POWER

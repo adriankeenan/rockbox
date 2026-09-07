@@ -297,6 +297,7 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define RIGHT BUTTON_RIGHT
 #define FIRE  BUTTON_A
 
+<<<<<<< HEAD
 #elif CONFIG_KEYPAD == RG35XX_PRO_PAD
 
 #define QUIT  BUTTON_START
@@ -305,6 +306,9 @@ CONFIG_KEYPAD == MROBE500_PAD
 #define FIRE  BUTTON_A
 
 #elif CONFIG_KEYPAD == CTRU_PAD
+=======
+#elif CONFIG_KEYPAD == N3DS_PAD
+>>>>>>> upstream/master
 
 #define QUIT  BUTTON_POWER
 #define LEFT  BUTTON_LEFT

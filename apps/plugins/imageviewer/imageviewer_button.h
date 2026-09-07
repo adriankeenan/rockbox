@@ -559,6 +559,7 @@
 #define IMGVIEW_MENU        BUTTON_B
 #define IMGVIEW_QUIT        BUTTON_START
 
+<<<<<<< HEAD
 #elif CONFIG_KEYPAD == RG35XX_PRO_PAD
 #define IMGVIEW_ZOOM_IN     BUTTON_X
 #define IMGVIEW_ZOOM_OUT    BUTTON_Y
@@ -572,6 +573,9 @@
 #define IMGVIEW_QUIT        BUTTON_START
 
 #elif CONFIG_KEYPAD == CTRU_PAD
+=======
+#elif CONFIG_KEYPAD == N3DS_PAD
+>>>>>>> upstream/master
 #define IMGVIEW_ZOOM_IN     BUTTON_POWER
 #define IMGVIEW_ZOOM_OUT    BUTTON_USER
 #define IMGVIEW_UP          BUTTON_UP

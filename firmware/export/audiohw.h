@@ -222,10 +222,14 @@ struct sound_settings_info
 #include "es9218.h"
 #elif (CONFIG_PLATFORM & PLATFORM_ANDROID)
 #include "android_codec.h"
+<<<<<<< HEAD
 /* RG_NANO and RG35XX_PRO are PLATFORM_HOSTED rather than PLATFORM_SDL, but
    still take their audio through SDL, so they need naming explicitly */
 #elif ((CONFIG_PLATFORM & (PLATFORM_SDL | PLATFORM_CTRU)) | defined(RG_NANO) \
        | defined(RG35XX_PRO))
+=======
+#elif ((CONFIG_PLATFORM & (PLATFORM_SDL | PLATFORM_GAME_CONSOLE)) | defined(RG_NANO))
+>>>>>>> upstream/master
 #include "sdl_codec.h"
 #elif defined(DX50)
 #include "codec-dx50.h"

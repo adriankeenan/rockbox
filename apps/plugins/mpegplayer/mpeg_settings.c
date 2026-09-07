@@ -365,6 +365,7 @@ struct mpeg_settings settings;
 #define MPEG_START_TIME_DOWN        BUTTON_DOWN
 #define MPEG_START_TIME_EXIT        BUTTON_START
 
+<<<<<<< HEAD
 #elif CONFIG_KEYPAD == RG35XX_PRO_PAD
 #define MPEG_START_TIME_SELECT      BUTTON_A
 #define MPEG_START_TIME_LEFT        BUTTON_LEFT
@@ -376,6 +377,9 @@ struct mpeg_settings settings;
 #define MPEG_START_TIME_EXIT        BUTTON_START
 
 #elif CONFIG_KEYPAD == CTRU_PAD
+=======
+#elif CONFIG_KEYPAD == N3DS_PAD
+>>>>>>> upstream/master
 #define MPEG_START_TIME_SELECT      BUTTON_SELECT
 #define MPEG_START_TIME_LEFT        BUTTON_LEFT
 #define MPEG_START_TIME_RIGHT       BUTTON_RIGHT

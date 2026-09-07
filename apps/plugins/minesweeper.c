@@ -454,6 +454,7 @@ CONFIG_KEYPAD == MROBE500_PAD
 #   define MINESWP_DISCOVER     BUTTON_A
 #   define MINESWP_INFO         BUTTON_Y
 
+<<<<<<< HEAD
 #elif CONFIG_KEYPAD == RG35XX_PRO_PAD
 #   define MINESWP_LEFT         BUTTON_LEFT
 #   define MINESWP_RIGHT        BUTTON_RIGHT
@@ -465,6 +466,9 @@ CONFIG_KEYPAD == MROBE500_PAD
 #   define MINESWP_INFO         BUTTON_Y
 
 #elif CONFIG_KEYPAD == CTRU_PAD
+=======
+#elif CONFIG_KEYPAD == N3DS_PAD
+>>>>>>> upstream/master
 #   define MINESWP_LEFT         BUTTON_LEFT
 #   define MINESWP_RIGHT        BUTTON_RIGHT
 #   define MINESWP_UP           BUTTON_UP

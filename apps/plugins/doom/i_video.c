@@ -632,6 +632,7 @@ void I_ShutdownGraphics(void)
 #define DOOMBUTTON_WEAPON  BUTTON_X
 #define DOOMBUTTON_MAP     BUTTON_Y
 
+<<<<<<< HEAD
 #elif CONFIG_KEYPAD == RG35XX_PRO_PAD
 #define DOOMBUTTON_UP      BUTTON_UP
 #define DOOMBUTTON_DOWN    BUTTON_DOWN
@@ -645,6 +646,9 @@ void I_ShutdownGraphics(void)
 #define DOOMBUTTON_MAP     BUTTON_Y
 
 #elif CONFIG_KEYPAD == CTRU_PAD
+=======
+#elif CONFIG_KEYPAD == N3DS_PAD
+>>>>>>> upstream/master
 #define DOOMBUTTON_UP      BUTTON_UP
 #define DOOMBUTTON_DOWN    BUTTON_DOWN
 #define DOOMBUTTON_LEFT    BUTTON_LEFT

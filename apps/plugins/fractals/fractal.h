@@ -518,6 +518,7 @@
 #define FRACTAL_PRECISION_DEC   BUTTON_L
 #define FRACTAL_RESET           BUTTON_A
 
+<<<<<<< HEAD
 #elif CONFIG_KEYPAD == RG35XX_PRO_PAD
 #define FRACTAL_QUIT            BUTTON_START
 #define FRACTAL_UP              BUTTON_UP
@@ -531,6 +532,9 @@
 #define FRACTAL_RESET           BUTTON_A
 
 #elif CONFIG_KEYPAD == CTRU_PAD
+=======
+#elif CONFIG_KEYPAD == N3DS_PAD
+>>>>>>> upstream/master
 #define FRACTAL_QUIT            BUTTON_BACK
 #define FRACTAL_UP              BUTTON_UP
 #define FRACTAL_DOWN            BUTTON_DOWN

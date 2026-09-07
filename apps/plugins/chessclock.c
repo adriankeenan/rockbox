@@ -407,6 +407,7 @@
 #define CHC_SETTINGS_OK     BUTTON_A
 #define CHC_SETTINGS_CANCEL BUTTON_B
 
+<<<<<<< HEAD
 #elif CONFIG_KEYPAD == RG35XX_PRO_PAD
 #define CHC_QUIT            BUTTON_START
 #define CHC_STARTSTOP       BUTTON_A
@@ -418,6 +419,9 @@
 #define CHC_SETTINGS_CANCEL BUTTON_B
 
 #elif CONFIG_KEYPAD == CTRU_PAD
+=======
+#elif CONFIG_KEYPAD == N3DS_PAD
+>>>>>>> upstream/master
 #define CHC_QUIT            BUTTON_BACK
 #define CHC_STARTSTOP       BUTTON_SELECT
 #define CHC_RESET           BUTTON_USER

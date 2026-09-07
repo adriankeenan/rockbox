@@ -372,6 +372,7 @@
 #define REVERSI_BUTTON_MAKE_MOVE    BUTTON_A
 #define REVERSI_BUTTON_MENU         BUTTON_B
 
+<<<<<<< HEAD
 #elif CONFIG_KEYPAD == RG35XX_PRO_PAD
 #define REVERSI_BUTTON_QUIT         BUTTON_START
 #define REVERSI_BUTTON_UP           BUTTON_UP
@@ -382,6 +383,9 @@
 #define REVERSI_BUTTON_MENU         BUTTON_B
 
 #elif CONFIG_KEYPAD == CTRU_PAD
+=======
+#elif CONFIG_KEYPAD == N3DS_PAD
+>>>>>>> upstream/master
 #define REVERSI_BUTTON_QUIT         BUTTON_BACK
 #define REVERSI_BUTTON_UP           BUTTON_UP
 #define REVERSI_BUTTON_DOWN         BUTTON_DOWN

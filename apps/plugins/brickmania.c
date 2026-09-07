@@ -373,6 +373,7 @@ CONFIG_KEYPAD == SANSA_M200_PAD
 #define UP              BUTTON_UP
 #define DOWN            BUTTON_DOWN
 
+<<<<<<< HEAD
 #elif CONFIG_KEYPAD == RG35XX_PRO_PAD
 #define CONTINUE_TEXT   "A To Continue"
 #define QUIT            BUTTON_START
@@ -383,6 +384,9 @@ CONFIG_KEYPAD == SANSA_M200_PAD
 #define DOWN            BUTTON_DOWN
 
 #elif CONFIG_KEYPAD == CTRU_PAD
+=======
+#elif CONFIG_KEYPAD == N3DS_PAD
+>>>>>>> upstream/master
 #define QUIT        BUTTON_BACK
 #define LEFT        BUTTON_LEFT
 #define RIGHT       BUTTON_RIGHT

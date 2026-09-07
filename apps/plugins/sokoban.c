@@ -712,6 +712,7 @@
 #define BUTTON_SAVE          BUTTON_A
 #define BUTTON_SAVE_NAME    "A"
 
+<<<<<<< HEAD
 #elif CONFIG_KEYPAD == RG35XX_PRO_PAD
 #define SOKOBAN_LEFT         BUTTON_LEFT
 #define SOKOBAN_RIGHT        BUTTON_RIGHT
@@ -727,6 +728,9 @@
 #define BUTTON_SAVE_NAME    "A"
 
 #elif CONFIG_KEYPAD == CTRU_PAD
+=======
+#elif CONFIG_KEYPAD == N3DS_PAD
+>>>>>>> upstream/master
 #define SOKOBAN_LEFT       BUTTON_LEFT
 #define SOKOBAN_RIGHT      BUTTON_RIGHT
 #define SOKOBAN_UP         BUTTON_UP
