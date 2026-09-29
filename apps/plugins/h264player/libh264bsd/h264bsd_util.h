@@ -124,13 +124,13 @@
 #endif
 
 /* macro to get smaller of two values */
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define H264BSD_MIN(a, b) (((a) < (b)) ? (a) : (b))
 
 /* macro to get greater of two values */
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#define H264BSD_MAX(a, b) (((a) > (b)) ? (a) : (b))
 
 /* macro to get absolute value */
-#define ABS(a) (((a) < 0) ? -(a) : (a))
+#define H264BSD_ABS(a) (((a) < 0) ? -(a) : (a))
 
 /* macro to clip a value z, so that x <= z =< y */
 #define CLIP3(x,y,z) (((z) < (x)) ? (x) : (((z) > (y)) ? (y) : (z)))
@@ -188,7 +188,7 @@ u32 h264bsdNextMbAddress(u32 *pSliceGroupMap, u32 picSizeInMbs, u32 currMbAddr);
 
 void h264bsdSetCurrImageMbPointers(image_t *image, u32 mbNum);
 
-i32 abs(i32 a);
+i32 h264bsd_abs(i32 a);
 i32 clip(i32 x, i32 y, i32 z);
 
 #endif /* #ifdef H264SWDEC_UTIL_H */

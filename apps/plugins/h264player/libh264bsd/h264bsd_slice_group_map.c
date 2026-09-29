@@ -340,28 +340,28 @@ void DecodeBoxOutMap(
 
         if (xDir == -1 && x == leftBound)
         {
-            leftBound = MAX(leftBound - 1, 0);
+            leftBound = H264BSD_MAX(leftBound - 1, 0);
             x = leftBound;
             xDir = 0;
             yDir = 2 * (i32)sliceGroupChangeDirectionFlag - 1;
         }
         else if (xDir == 1 && x == rightBound)
         {
-            rightBound = MIN(rightBound + 1, (i32)picWidth - 1);
+            rightBound = H264BSD_MIN(rightBound + 1, (i32)picWidth - 1);
             x = rightBound;
             xDir = 0;
             yDir = 1 - 2 * (i32)sliceGroupChangeDirectionFlag;
         }
         else if (yDir == -1 && y == topBound)
         {
-            topBound = MAX(topBound - 1, 0);
+            topBound = H264BSD_MAX(topBound - 1, 0);
             y = topBound;
             xDir = 1 - 2 * (i32)sliceGroupChangeDirectionFlag;
             yDir = 0;
         }
         else if (yDir == 1 && y == bottomBound)
         {
-            bottomBound = MIN(bottomBound + 1, (i32)picHeight - 1);
+            bottomBound = H264BSD_MIN(bottomBound + 1, (i32)picHeight - 1);
             y = bottomBound;
             xDir = 2 * (i32)sliceGroupChangeDirectionFlag - 1;
             yDir = 0;
@@ -536,7 +536,7 @@ void h264bsdDecodeSliceGroupMap(
                pps->sliceGroupChangeRate <= picSize);
 
         unitsInSliceGroup0 =
-            MIN(sliceGroupChangeCycle * pps->sliceGroupChangeRate, picSize);
+            H264BSD_MIN(sliceGroupChangeCycle * pps->sliceGroupChangeRate, picSize);
 
         if (pps->sliceGroupMapType == 4 || pps->sliceGroupMapType == 5)
             sizeOfUpperLeftGroup = pps->sliceGroupChangeDirectionFlag ?

@@ -150,7 +150,7 @@ u32 h264bsdExtractNalUnit(u8 *pByteStream, u32 len, strmData_t *pStrmData,
             {
                 pStrmData->strmBuffSize =
                     byteCount - initByteCount - zeroCount - 1;
-                zeroCount -= MIN(zeroCount, 3);
+                zeroCount -= H264BSD_MIN(zeroCount, 3);
                 break;
             }
             else if (byte)

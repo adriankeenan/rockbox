@@ -345,7 +345,7 @@ u32 InnerBoundaryStrength(mbStorage_t *mb1, u32 ind1, u32 ind2)
     {
         return 2;
     }
-    else if ( ((u32)ABS(mv1 - mv2) >= 4) || ((u32)ABS(mv3 - mv4) >= 4) ||
+    else if ( ((u32)H264BSD_ABS(mv1 - mv2) >= 4) || ((u32)H264BSD_ABS(mv3 - mv4) >= 4) ||
               (mb1->refAddr[ind1 >> 2] != mb1->refAddr[ind2 >> 2]) )
     {
         return 1;
@@ -373,7 +373,7 @@ u32 InnerBoundaryStrength2(mbStorage_t *mb1, u32 ind1, u32 ind2)
     tmp3 = mb1->mv[ind1].ver;
     tmp4 = mb1->mv[ind2].ver;
 
-    if ( ((u32)ABS(tmp1 - tmp2) >= 4) || ((u32)ABS(tmp3 - tmp4) >= 4) ||
+    if ( ((u32)H264BSD_ABS(tmp1 - tmp2) >= 4) || ((u32)H264BSD_ABS(tmp3 - tmp4) >= 4) ||
          (mb1->refAddr[ind1 >> 2] != mb1->refAddr[ind2 >> 2]))
     {
         return 1;
@@ -401,8 +401,8 @@ u32 EdgeBoundaryStrength(mbStorage_t *mb1, mbStorage_t *mb2,
         return 2;
     }
     else if ((mb1->refAddr[ind1 >> 2] != mb2->refAddr[ind2 >> 2]) ||
-             ((u32)ABS(mb1->mv[ind1].hor - mb2->mv[ind2].hor) >= 4) ||
-             ((u32)ABS(mb1->mv[ind1].ver - mb2->mv[ind2].ver) >= 4))
+             ((u32)H264BSD_ABS(mb1->mv[ind1].hor - mb2->mv[ind2].hor) >= 4) ||
+             ((u32)H264BSD_ABS(mb1->mv[ind1].ver - mb2->mv[ind2].ver) >= 4))
     {
         return 1;
     }
@@ -435,8 +435,8 @@ u32 EdgeBoundaryStrengthTop(mbStorage_t *mb1, mbStorage_t *mb2)
     {
         topBs = 2<<0;
     }
-    else if (((u32)ABS(mb1->mv[0].hor - mb2->mv[10].hor) >= 4) ||
-             ((u32)ABS(mb1->mv[0].ver - mb2->mv[10].ver) >= 4) ||
+    else if (((u32)H264BSD_ABS(mb1->mv[0].hor - mb2->mv[10].hor) >= 4) ||
+             ((u32)H264BSD_ABS(mb1->mv[0].ver - mb2->mv[10].ver) >= 4) ||
              (mb1->refAddr[0] != mb2->refAddr[10 >> 2]))
     {
         topBs = 1<<0;
@@ -447,8 +447,8 @@ u32 EdgeBoundaryStrengthTop(mbStorage_t *mb1, mbStorage_t *mb2)
     {
         topBs += 2<<8;
     }
-    else if (((u32)ABS(mb1->mv[1].hor - mb2->mv[11].hor) >= 4) ||
-             ((u32)ABS(mb1->mv[1].ver - mb2->mv[11].ver) >= 4) ||
+    else if (((u32)H264BSD_ABS(mb1->mv[1].hor - mb2->mv[11].hor) >= 4) ||
+             ((u32)H264BSD_ABS(mb1->mv[1].ver - mb2->mv[11].ver) >= 4) ||
              (mb1->refAddr[0] != mb2->refAddr[11 >> 2]))
     {
         topBs += 1<<8;
@@ -459,8 +459,8 @@ u32 EdgeBoundaryStrengthTop(mbStorage_t *mb1, mbStorage_t *mb2)
     {
         topBs += 2<<16;
     }
-    else if (((u32)ABS(mb1->mv[4].hor - mb2->mv[14].hor) >= 4) ||
-             ((u32)ABS(mb1->mv[4].ver - mb2->mv[14].ver) >= 4) ||
+    else if (((u32)H264BSD_ABS(mb1->mv[4].hor - mb2->mv[14].hor) >= 4) ||
+             ((u32)H264BSD_ABS(mb1->mv[4].ver - mb2->mv[14].ver) >= 4) ||
              (mb1->refAddr[4 >> 2] != mb2->refAddr[14 >> 2]))
     {
         topBs += 1<<16;
@@ -469,8 +469,8 @@ u32 EdgeBoundaryStrengthTop(mbStorage_t *mb1, mbStorage_t *mb2)
     {
         topBs += 2<<24;
     }
-    else if (((u32)ABS(mb1->mv[5].hor - mb2->mv[15].hor) >= 4) ||
-             ((u32)ABS(mb1->mv[5].ver - mb2->mv[15].ver) >= 4) ||
+    else if (((u32)H264BSD_ABS(mb1->mv[5].hor - mb2->mv[15].hor) >= 4) ||
+             ((u32)H264BSD_ABS(mb1->mv[5].ver - mb2->mv[15].ver) >= 4) ||
              (mb1->refAddr[5 >> 2] != mb2->refAddr[15 >> 2]))
     {
         topBs += 1<<24;
@@ -503,8 +503,8 @@ u32 EdgeBoundaryStrengthLeft(mbStorage_t *mb1, mbStorage_t *mb2)
     {
         leftBs = 2<<0;
     }
-    else if (((u32)ABS(mb1->mv[0].hor - mb2->mv[5].hor) >= 4) ||
-             ((u32)ABS(mb1->mv[0].ver - mb2->mv[5].ver) >= 4) ||
+    else if (((u32)H264BSD_ABS(mb1->mv[0].hor - mb2->mv[5].hor) >= 4) ||
+             ((u32)H264BSD_ABS(mb1->mv[0].ver - mb2->mv[5].ver) >= 4) ||
              (mb1->refAddr[0] != mb2->refAddr[5 >> 2]))
     {
         leftBs = 1<<0;
@@ -515,8 +515,8 @@ u32 EdgeBoundaryStrengthLeft(mbStorage_t *mb1, mbStorage_t *mb2)
     {
         leftBs += 2<<8;
     }
-    else if (((u32)ABS(mb1->mv[2].hor - mb2->mv[7].hor) >= 4) ||
-             ((u32)ABS(mb1->mv[2].ver - mb2->mv[7].ver) >= 4) ||
+    else if (((u32)H264BSD_ABS(mb1->mv[2].hor - mb2->mv[7].hor) >= 4) ||
+             ((u32)H264BSD_ABS(mb1->mv[2].ver - mb2->mv[7].ver) >= 4) ||
              (mb1->refAddr[0] != mb2->refAddr[7 >> 2]))
     {
         leftBs += 1<<8;
@@ -527,8 +527,8 @@ u32 EdgeBoundaryStrengthLeft(mbStorage_t *mb1, mbStorage_t *mb2)
     {
         leftBs += 2<<16;
     }
-    else if (((u32)ABS(mb1->mv[8].hor - mb2->mv[13].hor) >= 4) ||
-             ((u32)ABS(mb1->mv[8].ver - mb2->mv[13].ver) >= 4) ||
+    else if (((u32)H264BSD_ABS(mb1->mv[8].hor - mb2->mv[13].hor) >= 4) ||
+             ((u32)H264BSD_ABS(mb1->mv[8].ver - mb2->mv[13].ver) >= 4) ||
              (mb1->refAddr[8 >> 2] != mb2->refAddr[13 >> 2]))
     {
         leftBs += 1<<16;
@@ -537,8 +537,8 @@ u32 EdgeBoundaryStrengthLeft(mbStorage_t *mb1, mbStorage_t *mb2)
     {
         leftBs += 2<<24;
     }
-    else if (((u32)ABS(mb1->mv[10].hor - mb2->mv[15].hor) >= 4) ||
-             ((u32)ABS(mb1->mv[10].ver - mb2->mv[15].ver) >= 4) ||
+    else if (((u32)H264BSD_ABS(mb1->mv[10].hor - mb2->mv[15].hor) >= 4) ||
+             ((u32)H264BSD_ABS(mb1->mv[10].ver - mb2->mv[15].ver) >= 4) ||
              (mb1->refAddr[10 >> 2] != mb2->refAddr[15 >> 2]))
     {
         leftBs += 1<<24;
@@ -687,21 +687,21 @@ void FilterVerLumaEdge(
             p1 = data[-2]; p0 = data[-1];
             q0 = data[0]; q1 = data[1];
 
-            if ( ((u32)ABS(p0 - q0) < alpha) &&
-                 ((u32)ABS(p1 - p0) < beta)  &&
-                 ((u32)ABS(q1 - q0) < beta) )
+            if ( ((u32)H264BSD_ABS(p0 - q0) < alpha) &&
+                 ((u32)H264BSD_ABS(p1 - p0) < beta)  &&
+                 ((u32)H264BSD_ABS(q1 - q0) < beta) )
             {
                 p2 = data[-3];
                 q2 = data[2];
 
-                if ((u32)ABS(p2 - p0) < beta)
+                if ((u32)H264BSD_ABS(p2 - p0) < beta)
                 {
                     val = (p2 + ((p0 + q0 + 1) >> 1) - (p1 << 1)) >> 1;
                     data[-2] = (p1 + CLIP3(-tc, tc, val));
                     tmp++;
                 }
 
-                if ((u32)ABS(q2 - q0) < beta)
+                if ((u32)H264BSD_ABS(q2 - q0) < beta)
                 {
                     val = (q2 + ((p0 + q0 + 1) >> 1) - (q1 << 1)) >> 1;
                     data[1] = (q1 + CLIP3(-tc, tc, val));
@@ -726,16 +726,16 @@ void FilterVerLumaEdge(
         {
             p1 = data[-2]; p0 = data[-1];
             q0 = data[0]; q1 = data[1];
-            if ( ((u32)ABS(p0-q0) < alpha) &&
-                 ((u32)ABS(p1-p0) < beta)  &&
-                 ((u32)ABS(q1-q0) < beta) )
+            if ( ((u32)H264BSD_ABS(p0-q0) < alpha) &&
+                 ((u32)H264BSD_ABS(p1-p0) < beta)  &&
+                 ((u32)H264BSD_ABS(q1-q0) < beta) )
             {
-                tmpFlag = ((u32)ABS(p0 - q0) < ((alpha >> 2) +2)) ? HANTRO_TRUE : HANTRO_FALSE;
+                tmpFlag = ((u32)H264BSD_ABS(p0 - q0) < ((alpha >> 2) +2)) ? HANTRO_TRUE : HANTRO_FALSE;
 
                 p2 = data[-3];
                 q2 = data[2];
 
-                if (tmpFlag && (u32)ABS(p2-p0) < beta)
+                if (tmpFlag && (u32)H264BSD_ABS(p2-p0) < beta)
                 {
                     tmp = p1 + p0 + q0;
                     data[-1] = ((p2 + 2 * tmp + q1 + 4) >> 3);
@@ -745,7 +745,7 @@ void FilterVerLumaEdge(
                 else
                     data[-1] = (2 * p1 + p0 + q1 + 2) >> 2;
 
-                if (tmpFlag && (u32)ABS(q2-q0) < beta)
+                if (tmpFlag && (u32)H264BSD_ABS(q2-q0) < beta)
                 {
                     tmp = p0 + q0 + q1;
                     data[0] = ((p1 + 2 * tmp + q2 + 4) >> 3);
@@ -799,13 +799,13 @@ void FilterHorLumaEdge(
     {
         p1 = data[-imageWidth*2]; p0 = data[-imageWidth];
         q0 = data[0]; q1 = data[imageWidth];
-        if ( ((u32)ABS(p0-q0) < thresholds->alpha) &&
-             ((u32)ABS(p1-p0) < thresholds->beta)  &&
-             ((u32)ABS(q1-q0) < thresholds->beta) )
+        if ( ((u32)H264BSD_ABS(p0-q0) < thresholds->alpha) &&
+             ((u32)H264BSD_ABS(p1-p0) < thresholds->beta)  &&
+             ((u32)H264BSD_ABS(q1-q0) < thresholds->beta) )
         {
             p2 = data[-imageWidth*3];
 
-            if ((u32)ABS(p2-p0) < thresholds->beta)
+            if ((u32)H264BSD_ABS(p2-p0) < thresholds->beta)
             {
                 val = (p2 + ((p0 + q0 + 1) >> 1) - (p1 << 1)) >> 1;
                 data[-imageWidth*2] = (p1 + CLIP3(-tc, tc, val));
@@ -814,7 +814,7 @@ void FilterHorLumaEdge(
 
             q2 = data[imageWidth*2];
 
-            if ((u32)ABS(q2-q0) < thresholds->beta)
+            if ((u32)H264BSD_ABS(q2-q0) < thresholds->beta)
             {
                 val = (q2 + ((p0 + q0 + 1) >> 1) - (q1 << 1)) >> 1;
                 data[imageWidth] = (q1 + CLIP3(-tc, tc, val));
@@ -878,13 +878,13 @@ void FilterHorLuma(
         {
             p1 = data[-imageWidth*2]; p0 = data[-imageWidth];
             q0 = data[0]; q1 = data[imageWidth];
-            if ( ((u32)ABS(p0 - q0) < alpha) &&
-                 ((u32)ABS(p1 - p0) < beta)  &&
-                 ((u32)ABS(q1 - q0) < beta) )
+            if ( ((u32)H264BSD_ABS(p0 - q0) < alpha) &&
+                 ((u32)H264BSD_ABS(p1 - p0) < beta)  &&
+                 ((u32)H264BSD_ABS(q1 - q0) < beta) )
             {
                 p2 = data[-imageWidth*3];
 
-                if ((u32)ABS(p2 - p0) < beta)
+                if ((u32)H264BSD_ABS(p2 - p0) < beta)
                 {
                     val = (p2 + ((p0 + q0 + 1) >> 1) - (p1 << 1)) >> 1;
                     data[-imageWidth*2] = (u8)(p1 + CLIP3(-tc, tc, val));
@@ -893,7 +893,7 @@ void FilterHorLuma(
 
                 q2 = data[imageWidth*2];
 
-                if ((u32)ABS(q2-q0) < beta)
+                if ((u32)H264BSD_ABS(q2-q0) < beta)
                 {
                     val = (q2 + ((p0 + q0 + 1) >> 1) - (q1 << 1)) >> 1;
                     data[imageWidth] = (u8)(q1 + CLIP3(-tc, tc, val));
@@ -917,17 +917,17 @@ void FilterHorLuma(
         {
             p1 = data[-imageWidth*2]; p0 = data[-imageWidth];
             q0 = data[0]; q1 = data[imageWidth];
-            if ( ((u32)ABS(p0 - q0) < alpha) &&
-                 ((u32)ABS(p1 - p0) < beta)  &&
-                 ((u32)ABS(q1 - q0) < beta) )
+            if ( ((u32)H264BSD_ABS(p0 - q0) < alpha) &&
+                 ((u32)H264BSD_ABS(p1 - p0) < beta)  &&
+                 ((u32)H264BSD_ABS(q1 - q0) < beta) )
             {
-                tmpFlag = ((u32)ABS(p0 - q0) < ((alpha >> 2) +2))
+                tmpFlag = ((u32)H264BSD_ABS(p0 - q0) < ((alpha >> 2) +2))
                             ? HANTRO_TRUE : HANTRO_FALSE;
 
                 p2 = data[-imageWidth*3];
                 q2 = data[imageWidth*2];
 
-                if (tmpFlag && (u32)ABS(p2 - p0) < beta)
+                if (tmpFlag && (u32)H264BSD_ABS(p2 - p0) < beta)
                 {
                     tmp = p1 + p0 + q0;
                     data[-imageWidth] = (u8)((p2 + 2 * tmp + q1 + 4) >> 3);
@@ -938,7 +938,7 @@ void FilterHorLuma(
                 else
                     data[-imageWidth] = (u8)((2 * p1 + p0 + q1 + 2) >> 2);
 
-                if (tmpFlag && (u32)ABS(q2 - q0) < beta)
+                if (tmpFlag && (u32)H264BSD_ABS(q2 - q0) < beta)
                 {
                     tmp = p0 + q0 + q1;
                     data[ 0] = (u8)((p1 + 2 * tmp + q2 + 4) >> 3);
@@ -985,9 +985,9 @@ void FilterVerChromaEdge(
 
     p1 = data[-2]; p0 = data[-1];
     q0 = data[0]; q1 = data[1];
-    if ( ((u32)ABS(p0-q0) < thresholds->alpha) &&
-         ((u32)ABS(p1-p0) < thresholds->beta)  &&
-         ((u32)ABS(q1-q0) < thresholds->beta) )
+    if ( ((u32)H264BSD_ABS(p0-q0) < thresholds->alpha) &&
+         ((u32)H264BSD_ABS(p1-p0) < thresholds->beta)  &&
+         ((u32)H264BSD_ABS(q1-q0) < thresholds->beta) )
     {
         if (bS < 4)
         {
@@ -1008,9 +1008,9 @@ void FilterVerChromaEdge(
     data += width;
     p1 = data[-2]; p0 = data[-1];
     q0 = data[0]; q1 = data[1];
-    if ( ((u32)ABS(p0-q0) < thresholds->alpha) &&
-         ((u32)ABS(p1-p0) < thresholds->beta)  &&
-         ((u32)ABS(q1-q0) < thresholds->beta) )
+    if ( ((u32)H264BSD_ABS(p0-q0) < thresholds->alpha) &&
+         ((u32)H264BSD_ABS(p1-p0) < thresholds->beta)  &&
+         ((u32)H264BSD_ABS(q1-q0) < thresholds->beta) )
     {
         if (bS < 4)
         {
@@ -1064,9 +1064,9 @@ void FilterHorChromaEdge(
     {
         p1 = data[-width*2]; p0 = data[-width];
         q0 = data[0]; q1 = data[width];
-        if ( ((u32)ABS(p0-q0) < thresholds->alpha) &&
-             ((u32)ABS(p1-p0) < thresholds->beta)  &&
-             ((u32)ABS(q1-q0) < thresholds->beta) )
+        if ( ((u32)H264BSD_ABS(p0-q0) < thresholds->alpha) &&
+             ((u32)H264BSD_ABS(p1-p0) < thresholds->beta)  &&
+             ((u32)H264BSD_ABS(q1-q0) < thresholds->beta) )
         {
             delta = CLIP3(-tc, tc, ((((q0 - p0) << 2) +
                       (p1 - q1) + 4) >> 3));
@@ -1114,9 +1114,9 @@ void FilterHorChroma(
         {
             p1 = data[-width*2]; p0 = data[-width];
             q0 = data[0]; q1 = data[width];
-            if ( ((u32)ABS(p0-q0) < thresholds->alpha) &&
-                 ((u32)ABS(p1-p0) < thresholds->beta)  &&
-                 ((u32)ABS(q1-q0) < thresholds->beta) )
+            if ( ((u32)H264BSD_ABS(p0-q0) < thresholds->alpha) &&
+                 ((u32)H264BSD_ABS(p1-p0) < thresholds->beta)  &&
+                 ((u32)H264BSD_ABS(q1-q0) < thresholds->beta) )
             {
                 delta = CLIP3(-tc, tc, ((((q0 - p0) << 2) +
                           (p1 - q1) + 4) >> 3));
@@ -1133,9 +1133,9 @@ void FilterHorChroma(
         {
             p1 = data[-width*2]; p0 = data[-width];
             q0 = data[0]; q1 = data[width];
-            if ( ((u32)ABS(p0-q0) < thresholds->alpha) &&
-                 ((u32)ABS(p1-p0) < thresholds->beta)  &&
-                 ((u32)ABS(q1-q0) < thresholds->beta) )
+            if ( ((u32)H264BSD_ABS(p0-q0) < thresholds->alpha) &&
+                 ((u32)H264BSD_ABS(p1-p0) < thresholds->beta)  &&
+                 ((u32)H264BSD_ABS(q1-q0) < thresholds->beta) )
             {
                     data[-width] = (2 * p1 + p0 + q1 + 2) >> 2;
                     data[  0] = (2 * q1 + q0 + p1 + 2) >> 2;

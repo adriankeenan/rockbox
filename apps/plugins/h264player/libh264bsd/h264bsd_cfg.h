@@ -35,7 +35,7 @@
 
 #include "basetype.h"
 #include <stdlib.h>
-#include <memory.h>
+#include <string.h>
 
 /*------------------------------------------------------------------------------
     2. Module defines

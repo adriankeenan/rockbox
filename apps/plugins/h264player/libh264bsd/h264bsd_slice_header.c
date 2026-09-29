@@ -207,7 +207,7 @@ u32 h264bsdDecodeSliceHeader(strmData_t *pStrmData, sliceHeader_t *pSliceHeader,
         if ( IS_IDR_NAL_UNIT(pNalUnit) &&
              ( (pSliceHeader->picOrderCntLsb >
                 pSeqParamSet->maxPicOrderCntLsb/2) ||
-                MIN((i32)pSliceHeader->picOrderCntLsb,
+                H264BSD_MIN((i32)pSliceHeader->picOrderCntLsb,
                     (i32)pSliceHeader->picOrderCntLsb +
                     pSliceHeader->deltaPicOrderCntBottom) != 0 ) )
         {
@@ -234,7 +234,7 @@ u32 h264bsdDecodeSliceHeader(strmData_t *pStrmData, sliceHeader_t *pSliceHeader,
         /* check that picOrderCnt for IDR picture will be zero. See
          * DecodePicOrderCnt function to understand the logic here */
         if ( IS_IDR_NAL_UNIT(pNalUnit) &&
-             MIN(pSliceHeader->deltaPicOrderCnt[0],
+             H264BSD_MIN(pSliceHeader->deltaPicOrderCnt[0],
                  pSliceHeader->deltaPicOrderCnt[0] +
                  pSeqParamSet->offsetForTopToBottomField +
                  pSliceHeader->deltaPicOrderCnt[1]) != 0)

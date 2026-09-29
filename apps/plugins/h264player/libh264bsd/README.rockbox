@@ -11,4 +11,8 @@ Only src/*.c and src/*.h are imported. Local modifications are listed below.
 
 Local changes
 -------------
-(none yet)
+- Allocation goes through H264BSD_MALLOC/H264BSD_FREE (h264bsd_util.h), which
+  Rockbox builds point at h264bsd_ext_malloc/free (H264BSD_EXTERNAL_ALLOC).
+- <memory.h> replaced by <string.h> (not present in Rockbox's libc).
+- Macros ABS/MIN/MAX and function abs() renamed H264BSD_ABS/MIN/MAX and
+  h264bsd_abs() to avoid clashing with Rockbox's stdlib.h / system.h.

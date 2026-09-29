@@ -345,7 +345,7 @@ u32 h264bsdDecodeSeqParamSet(strmData_t *pStrmData, seqParamSet_t *pSeqParamSet)
             /* standard says that "the sequence shall not require a DPB with
              * size of more than max(1, maxDecFrameBuffering) */
             pSeqParamSet->maxDpbSize =
-                MAX(1, pSeqParamSet->vuiParameters->maxDecFrameBuffering);
+                H264BSD_MAX(1, pSeqParamSet->vuiParameters->maxDecFrameBuffering);
         }
     }
 
@@ -485,7 +485,7 @@ u32 GetDpbSize(u32 picSizeInMbs, u32 levelIdc)
 
     tmp /= (picSizeInMbs*384);
 
-    return(MIN(tmp, 16));
+    return(H264BSD_MIN(tmp, 16));
 
 }
 

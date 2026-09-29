@@ -1000,7 +1000,7 @@ u32 h264bsdInitDpb(
     ASSERT(dpbSize);
 
     dpb->maxLongTermFrameIdx = NO_LONG_TERM_FRAME_INDICES;
-    dpb->maxRefFrames        = MAX(maxRefFrames, 1);
+    dpb->maxRefFrames        = H264BSD_MAX(maxRefFrames, 1);
     if (noReordering)
         dpb->dpbSize         = dpb->maxRefFrames;
     else

@@ -1918,7 +1918,7 @@ u32 DetermineIntra4x4PredMode(macroblockLayer_t *pMbLayer,
         else
             mode2 = 2;
 
-        mode1 = MIN(mode1, mode2);
+        mode1 = H264BSD_MIN(mode1, mode2);
     }
 
     if (!pMbLayer->mbPred.prevIntra4x4PredModeFlag[index])

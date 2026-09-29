@@ -314,7 +314,7 @@ void h264bsdMarkSliceCorrupted(storage_t *pStorage, u32 firstMbInSlice)
     sliceId = pStorage->slice->sliceId;
 
     /* DecodeSliceData sets lastMbAddr for I slices -> if it was set, go back
-     * MAX(picWidthInMbs, 10) macroblocks and start marking from there */
+     * H264BSD_MAX(picWidthInMbs, 10) macroblocks and start marking from there */
     if (pStorage->slice->lastMbAddr)
     {
         ASSERT(pStorage->mb[pStorage->slice->lastMbAddr].sliceId == sliceId);
@@ -325,7 +325,7 @@ void h264bsdMarkSliceCorrupted(storage_t *pStorage, u32 firstMbInSlice)
             if (pStorage->mb[i].sliceId == sliceId)
             {
                 tmp++;
-                if (tmp >= MAX(pStorage->activeSps->picWidthInMbs, 10))
+                if (tmp >= H264BSD_MAX(pStorage->activeSps->picWidthInMbs, 10))
                     break;
             }
             i--;
