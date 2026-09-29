@@ -1,0 +1,35 @@
+h264player - H.264 (baseline) video player plugin
+=================================================
+
+A fork of mpegplayer that decodes H.264 baseline profile with libh264bsd
+(libh264bsd/, Apache-2.0) instead of libmpeg2. Container, audio (MP2/MP3 via
+libmad), buffering, sync and UI are mpegplayer's.
+
+Files: *.h264 in MPEG program stream (PS) with MP2 or MP3 audio.
+
+Encoding a compatible file
+--------------------------
+  ffmpeg -i in.mp4 -vf scale=320:-2 -r 24 \
+    -c:v libx264 -profile:v baseline -level 2.1 -x264-params ref=3:bframes=0:keyint=48 \
+    -c:a mp2 -b:a 128k -ar 44100 -f vob out.h264
+
+Requirements: baseline profile (no B-frames, no CABAC/interlace), progressive,
+a video PES id in 0xE0-0xEF (ffmpeg uses 0xE2, accepted), and keep reference
+frames <= 4 (each QVGA frame is ~115 KB of the 2 MiB decoder pool).
+Keyframes (IDR) every ~2 s: seeking and frame-skip recovery use IDR pictures.
+
+Testing (no device needed)
+--------------------------
+  test/run_all.sh    host decoder tests (native, ASan/UBSan, 32-bit,
+                     mipsel/qemu, fuzz) + headless simulator runs for
+                     erosqnative and rg35xxpro, all compared with ffmpeg.
+Needs: ffmpeg (libx264, mp2), python3, gcc (+multilib), SDL2 dev headers,
+mipsel-linux-gnu-gcc and qemu-user (optional).
+The simulator runs use a sim-only hook in apps/main.c (env
+ROCKBOX_AUTORUN_PLUGIN / ROCKBOX_AUTORUN_PARAM) and h264test.c.
+
+Layout
+------
+  h264dec.[ch]   libmpeg2-shaped front end over libh264bsd (NAL reassembly,
+                 PTS tagging, skip/flush semantics)
+  video_thread.c video_out_rockbox.c mpeg_parser.c ...  from mpegplayer
