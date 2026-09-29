@@ -59,6 +59,28 @@ else
     echo "SKIP mips (mipsel-linux-gnu-gcc / qemu-mipsel missing)"
 fi
 
+
+# Shim (h264dec.c) fed PES payloads in random chunk sizes: output must equal a
+# direct decode of the raw stream, every frame including the last.
+gcc -std=gnu11 -O2 -g -DH264BSD_EXTERNAL_ALLOC -fsanitize=address,undefined \
+    -fno-sanitize=shift-base -I"$HERE/.." -I"$LIB" -o "$BLD/shim_asan" \
+    "$HERE/shim_test.c" "$HERE/../h264dec.c" "$LIB"/h264bsd_*.c 2>"$BLD/build_shim.log" \
+    || { echo "FAIL build shim (see $BLD/build_shim.log)"; fail=1; }
+if [ -x "$BLD/shim_asan" ]; then
+    for c in $CLIPS; do
+        for seed in 1 2 3; do
+            "$BLD/shim_asan" "$FIX/$c.h264" "$BLD/shim.$c.yuv" $seed 2>"$BLD/shim.$c.err" \
+                || { echo "FAIL shim $c seed $seed: crashed"; tail -3 "$BLD/shim.$c.err"; fail=1; continue; }
+            md5s "$BLD/shim.$c.yuv" $(ffprobe -v error -select_streams v -show_entries stream=width,height -of csv=p=0 "$FIX/$c.264" | tr , ' ') > "$BLD/shim.$c.got"
+            if cmp -s "$BLD/shim.$c.got" "$BLD/$c.want"; then
+                echo "PASS shim $c seed $seed"
+            else
+                echo "FAIL shim $c seed $seed: frames differ from ffmpeg ($(wc -l < "$BLD/shim.$c.got") vs $(wc -l < "$BLD/$c.want"))"; fail=1
+            fi
+        done
+    done
+fi
+
 # Robustness: truncated and corrupted streams must not crash under ASan.
 for c in qvga_testsrc qvga_mandel; do
     sz=$(wc -c < "$FIX/$c.264")

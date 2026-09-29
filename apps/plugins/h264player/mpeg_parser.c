@@ -1092,10 +1092,29 @@ int parser_init_stream(void)
 
     /* Try to pull a video PES - if not found, try video init anyway which
      * should succeed if it really is a video-only stream */
+    /* Encoders differ in which video PES id they use (ffmpeg numbers H.264
+     * 0xe2), so accept the first id in the video range that has a packet. */
+    int found = 0;
+    for (int vid = MPEG_STREAM_VIDEO_FIRST; vid <= MPEG_STREAM_VIDEO_LAST; vid++)
+    {
+        video_str.id = vid;
+        video_str.hdr.pos = 0;
+        video_str.hdr.limit = 256*1024;
+
+        if (parse_demux(&video_str, STREAM_PM_RANDOM_ACCESS) == STREAM_OK)
+        {
+            found = 1;
+            break;
+        }
+    }
+
+    if (!found)
+        video_str.id = MPEG_STREAM_VIDEO_FIRST;
+
     video_str.hdr.pos = 0;
     video_str.hdr.limit = 256*1024;
 
-    if (parse_demux(&video_str, STREAM_PM_RANDOM_ACCESS) == STREAM_OK)
+    if (found)
     {
         /* Found a video packet - assume program stream */
         str_parser.format = STREAM_FMT_MPEG_PS;

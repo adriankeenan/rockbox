@@ -21,7 +21,6 @@
  ****************************************************************************/
 #include "plugin.h"
 #include "h264player.h"
-#include "libmpeg2/mpeg2dec_config.h"
 #include "lib/grey.h"
 #include "video_out.h"
 #include "mpeg_settings.h"
@@ -122,6 +121,8 @@ static int video_str_scan(struct video_thread_data *td,
             {
             case STREAM_DATA_END:
                 DEBUGF("video_stream_scan:STREAM_DATA_END\n");
+                if (mpeg2_end(td->mpeg2dec))
+                    break; /* let the last picture come out */
                 goto scan_finished;
 
             case STREAM_OK:
@@ -276,6 +277,8 @@ static int sync_decoder(struct video_thread_data *td,
             {
             case STREAM_DATA_END:
                 DEBUGF("sync_decoder:STR_DATA_END\n");
+                if (mpeg2_end(td->mpeg2dec))
+                    break; /* let the last picture come out */
                 if (td->info && td->info->display_picture &&
                     !(td->info->display_picture->flags & PIC_FLAG_SKIP))
                 {
@@ -300,12 +303,6 @@ static int sync_decoder(struct video_thread_data *td,
         case STATE_SEQUENCE:
             DEBUGF("  STATE_SEQUENCE\n");
             vo_setup(td->info->sequence);
-            break;
-
-        case STATE_GOP:
-            DEBUGF("  STATE_GOP: (%s)\n",
-                   (td->info->gop->flags & GOP_FLAG_CLOSED_GOP) ?
-                    "closed" : "open");
             break;
 
         case STATE_PICTURE:
@@ -732,6 +729,8 @@ static void video_thread(void)
                 goto message_wait;
 
             case STREAM_DATA_END:
+                if (mpeg2_end(td.mpeg2dec))
+                    break; /* let the last picture come out */
                 /* No more data. */
                 td.state = TSTATE_EOS;
                 if (td.status == STREAM_PLAYING)

@@ -17,8 +17,6 @@
  * KIND, either express or implied.
  *
  ****************************************************************************/
-#include "libmpeg2/mpeg2dec_config.h"
-
 #include "plugin.h"
 #include "h264player.h"
 

@@ -71,7 +71,7 @@
 
 #include "lib/mylcd.h"
 
-#include "libmpeg2/mpeg2.h"
+#include "h264dec.h"
 #include "video_out.h"
 #include "mpeg_stream.h"
 #include "mpeg_misc.h"

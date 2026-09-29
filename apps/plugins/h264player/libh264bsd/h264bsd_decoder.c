@@ -102,7 +102,7 @@ u32 h264bsdInit(storage_t *pStorage, u32 noOutputReordering)
      * specific NEON optimized "memset" for clearing the structure */
     size = (sizeof(macroblockLayer_t) + 63) & ~0x3F;
 
-    pStorage->mbLayer = (macroblockLayer_t*)malloc(size);
+    pStorage->mbLayer = (macroblockLayer_t*)H264BSD_MALLOC(size);
     if (!pStorage->mbLayer)
         return HANTRO_NOK;
 
@@ -656,9 +656,9 @@ u32* h264bsdNextOutputPictureRGBA(storage_t *pStorage, u32 *picId, u32 *isIdrPic
 
     if(pStorage->conversionBufferSize < rgbSize)
     {
-        if(pStorage->conversionBuffer != NULL) free(pStorage->conversionBuffer);
+        if(pStorage->conversionBuffer != NULL) H264BSD_FREE(pStorage->conversionBuffer);
         pStorage->conversionBufferSize = rgbSize;
-        pStorage->conversionBuffer = (u32*)malloc(rgbSize);
+        pStorage->conversionBuffer = (u32*)H264BSD_MALLOC(rgbSize);
     }
 
     h264bsdConvertToRGBA(width, height, data, pStorage->conversionBuffer);
@@ -698,9 +698,9 @@ u32* h264bsdNextOutputPictureBGRA(storage_t *pStorage, u32 *picId, u32 *isIdrPic
 
     if(pStorage->conversionBufferSize < rgbSize)
     {
-        if(pStorage->conversionBuffer != NULL) free(pStorage->conversionBuffer);
+        if(pStorage->conversionBuffer != NULL) H264BSD_FREE(pStorage->conversionBuffer);
         pStorage->conversionBufferSize = rgbSize;
-        pStorage->conversionBuffer = (u32*)malloc(rgbSize);
+        pStorage->conversionBuffer = (u32*)H264BSD_MALLOC(rgbSize);
     }
 
     h264bsdConvertToBGRA(width, height, data, pStorage->conversionBuffer);
@@ -740,9 +740,9 @@ u32* h264bsdNextOutputPictureYCbCrA(storage_t *pStorage, u32 *picId, u32 *isIdrP
 
     if(pStorage->conversionBufferSize < rgbSize)
     {
-        if(pStorage->conversionBuffer != NULL) free(pStorage->conversionBuffer);
+        if(pStorage->conversionBuffer != NULL) H264BSD_FREE(pStorage->conversionBuffer);
         pStorage->conversionBufferSize = rgbSize;
-        pStorage->conversionBuffer = (u32*)malloc(rgbSize);
+        pStorage->conversionBuffer = (u32*)H264BSD_MALLOC(rgbSize);
     }
 
     h264bsdConvertToYCbCrA(width, height, data, pStorage->conversionBuffer);
@@ -1109,7 +1109,7 @@ u32 h264bsdProfile(storage_t *pStorage)
 
 storage_t* h264bsdAlloc()
 {
-    return (storage_t*)malloc(sizeof(storage_t));
+    return (storage_t*)H264BSD_MALLOC(sizeof(storage_t));
 }
 
 /*------------------------------------------------------------------------------
@@ -1132,7 +1132,7 @@ storage_t* h264bsdAlloc()
 
 void h264bsdFree(storage_t *pStorage)
 {
-    free(pStorage);
+    H264BSD_FREE(pStorage);
 }
 
 /*------------------------------------------------------------------------------

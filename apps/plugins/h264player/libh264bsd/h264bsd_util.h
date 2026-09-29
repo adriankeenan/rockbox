@@ -138,16 +138,29 @@
 /* macro to clip a value z, so that 0 <= z =< 255 */
 #define CLIP1(z) (((z) < 0) ? 0 : (((z) > 255) ? 255 : (z)))
 
+/* Allocation hooks. Rockbox builds define H264BSD_EXTERNAL_ALLOC and provide
+ * h264bsd_ext_malloc/h264bsd_ext_free (see ../h264dec.c). */
+#ifdef H264BSD_EXTERNAL_ALLOC
+#include <stddef.h>
+void *h264bsd_ext_malloc(size_t size);
+void h264bsd_ext_free(void *ptr);
+#define H264BSD_MALLOC(n) h264bsd_ext_malloc(n)
+#define H264BSD_FREE(p)   h264bsd_ext_free(p)
+#else
+#define H264BSD_MALLOC(n) malloc(n)
+#define H264BSD_FREE(p)   free(p)
+#endif
+
 /* macro to allocate memory */
 #define ALLOCATE(ptr, count, type) \
 { \
-    (ptr) = malloc((count) * sizeof(type)); \
+    (ptr) = H264BSD_MALLOC((count) * sizeof(type)); \
 }
 
 /* macro to free allocated memory */
 #define FREE(ptr) \
 { \
-    free((ptr)); (ptr) = NULL; \
+    H264BSD_FREE((ptr)); (ptr) = NULL; \
 }
 
 #define ALIGN(ptr, bytePos) \

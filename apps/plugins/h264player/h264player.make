@@ -19,9 +19,9 @@ OTHER_SRC += $(H264_SRC)
 
 # Set '-fgnu89-inline' if supported (GCCVER >= 4.1.3, GCCNUM > 401)
 ifeq ($(shell expr $(GCCNUM) \> 401),1)
-    H264CFLAGS = $(PLUGINFLAGS) -fgnu89-inline
+    H264CFLAGS = $(PLUGINFLAGS) -fgnu89-inline -DH264BSD_EXTERNAL_ALLOC
 else
-    H264CFLAGS = $(PLUGINFLAGS)
+    H264CFLAGS = $(PLUGINFLAGS) -DH264BSD_EXTERNAL_ALLOC
 endif
 
 $(H264BUILDDIR)/h264player.rock: $(H264_OBJ) $(CODECDIR)/libmad-mpeg.a
