@@ -41,14 +41,14 @@ for c in $CLIPS; do
     python3 - "$LOG" "$FIX/$c.md5" "$TARGET $c" <<'P' || fail=1
 import sys
 log, ref, name = sys.argv[1], sys.argv[2], sys.argv[3]
-p1, p2, cur, meta = [], [], None, {}
-cur = p1
+passes, meta = [[]], {}
 for l in open(log).read().split('\n'):
-    if l.startswith('PHASE seek'): cur = p2
-    elif l.startswith('F '): cur.append(l.split()[2])
+    if l.startswith('PHASE seek'): passes.append([])
+    elif l.startswith('F '): passes[-1].append(l.split()[2])
     elif l.startswith('OPEN '): meta['open'] = int(l.split()[1])
     elif l.startswith('TIMEOUT'): meta['timeout'] = True
 want = [l.split(',')[5].strip() for l in open(ref) if not l.startswith('#')]
+p1 = passes[0]
 ok = True
 def bad(msg):
     global ok
@@ -58,13 +58,19 @@ elif meta.get('timeout'): bad('timed out')
 elif p1 != want:
     d = next((i for i, (a, b) in enumerate(zip(p1, want)) if a != b), min(len(p1), len(want)))
     bad('play-through differs from ffmpeg: %d vs %d frames, first diff at %d' % (len(p1), len(want), d))
+elif len(passes) < 2:
+    bad('no seek passes ran')
 else:
-    n = len(p2)
-    starts = [i for i in range(len(want) - n + 1) if want[i:i+n] == p2]
-    if n == 0 or n >= len(want) or not starts or starts[0] + n != len(want):
-        bad('after seek got %d frames, not a tail of the reference' % n)
+    starts = []
+    for n, p2 in enumerate(passes[1:]):
+        k = len(p2)
+        st = [i for i in range(len(want) - k + 1) if want[i:i+k] == p2] if k else []
+        if k == 0 or not st or st[0] + k != len(want):
+            bad('seek %d: got %d frames, not a tail of the reference' % (n + 1, k))
+            break
+        starts.append(st[0])
     else:
-        print('PASS sim %s: %d frames exact; seek resumed at frame %d (%d frames)' % (name, len(p1), starts[0], n))
+        print('PASS sim %s: %d frames exact; seeks resumed at frames %s' % (name, len(p1), starts))
 sys.exit(0 if ok else 1)
 P
     [ -f "$DISK/h264player_shot.bmp" ] && cp "$DISK/h264player_shot.bmp" "$BLD/shot_$c.bmp"

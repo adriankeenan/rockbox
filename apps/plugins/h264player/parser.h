@@ -77,6 +77,7 @@ extern struct stream_parser str_parser;
 
 /* MPEG parsing */
 uint8_t * mpeg_parser_scan_start_code(struct stream_scan *sk, uint32_t code);
+uint8_t * mpeg_parser_scan_nal(struct stream_scan *sk, unsigned nal_type);
 unsigned mpeg_parser_scan_pes(struct stream_scan *sk);
 uint32_t mpeg_parser_scan_scr(struct stream_scan *sk);
 uint32_t mpeg_parser_scan_pts(struct stream_scan *sk, unsigned id);

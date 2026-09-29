@@ -24,6 +24,9 @@
 
 struct stream_parser str_parser SHAREDBSS_ATTR;
 
+#define NAL_TYPE_SPS         7
+#define MAX_KEYFRAME_SEARCH  (2*1024*1024)
+
 static void parser_init_state(void)
 {
     str_parser.last_seek_time = 0;
@@ -104,6 +107,39 @@ uint8_t * mpeg_parser_scan_start_code(struct stream_scan *sk, uint32_t code)
             break;
 
         if (CMP_3_CONST(p, PACKET_START_CODE_PREFIX) && p[3] == code)
+        {
+            return p;
+        }
+
+        stream_scan_offset(sk, 1);
+    }
+
+    return NULL;
+}
+
+/* Find an H.264 NAL unit of the given type (ignores nal_ref_idc) before or
+ * after a given position. */
+uint8_t * mpeg_parser_scan_nal(struct stream_scan *sk, unsigned nal_type)
+{
+    stream_scan_normalize(sk);
+
+    if (sk->dir < 0)
+    {
+        /* Reverse scan - start with at least the min needed */
+        stream_scan_offset(sk, 4);
+    }
+
+    while (sk->len >= 0 && sk->margin >= 4)
+    {
+        uint8_t *p;
+        off_t pos = disk_buf_lseek(sk->pos, SEEK_SET);
+        ssize_t len = disk_buf_getbuffer_l2(&sk->l2, 4, &p);
+
+        if (pos < 0 || len < 4)
+            break;
+
+        if (CMP_3_CONST(p, PACKET_START_CODE_PREFIX) &&
+            (p[3] & 0x9f) == nal_type) /* forbidden bit clear, type match */
         {
             return p;
         }
@@ -984,15 +1020,19 @@ bool parser_prepare_image(uint32_t time)
 
     sk.pos = parser_can_seek() ?
                 mpeg_parser_seek_PTS(time, video_str.id) : 0;
-    sk.len = sk.pos;
+    /* Look back for a sequence parameter set, which encoders emit in front
+     * of each IDR picture (a self-contained place to start decoding). Bound
+     * the search so a stream without repeated SPS/PPS does not scan back
+     * through the whole file a byte at a time. */
+    sk.len = MIN(sk.pos, MAX_KEYFRAME_SEARCH);
     sk.dir = SSCAN_REVERSE;
 
     tries = 1;
 try_again:
 
-    if (mpeg_parser_scan_start_code(&sk, MPEG_START_GOP))
+    if (mpeg_parser_scan_nal(&sk, NAL_TYPE_SPS))
     {
-        DEBUGF("GOP found at: %jd\n", (intmax_t) sk.pos);
+        DEBUGF("SPS found at: %jd\n", (intmax_t) sk.pos);
 
         unsigned id = mpeg_parser_scan_pes(&sk);
 

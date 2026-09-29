@@ -183,16 +183,25 @@ int h264test_run(const char *file)
 
     stream_stop();
 
-    /* Seek test: jump to the middle and play out the rest */
+    /* Seek tests: jump to several points and play out the rest each time */
     shot_enabled = false;
-    frame_count = 0;
-    log_line("PHASE seek\n");
-    r = stream_seek(duration / 2, SEEK_SET);
-    log_line("SEEKMID %d\n", r);
-    r = stream_play();
-    log_line("PLAY %d\n", r);
-    wait_finished();
-    log_line("PASS2 frames=%d\n", frame_count);
+    {
+        static const int seek_pct[] = { 50, 90, 10 };
+        unsigned i;
+
+        for (i = 0; i < sizeof seek_pct / sizeof seek_pct[0]; i++)
+        {
+            stream_stop();
+            frame_count = 0;
+            log_line("PHASE seek %d\n", seek_pct[i]);
+            r = stream_seek(muldiv_uint32(duration, seek_pct[i], 100), SEEK_SET);
+            log_line("SEEK %d\n", r);
+            r = stream_play();
+            log_line("PLAY %d\n", r);
+            wait_finished();
+            log_line("PASS%u frames=%d\n", i + 2, frame_count);
+        }
+    }
 
     test_active = false;
     stream_stop();
