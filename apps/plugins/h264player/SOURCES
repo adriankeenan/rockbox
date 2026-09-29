@@ -37,3 +37,6 @@ stream_mgr.c
 h264player.c
 mpeg_parser.c
 mpeg_misc.c
+#ifdef SIMULATOR
+h264test.c
+#endif

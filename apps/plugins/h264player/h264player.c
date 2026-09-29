@@ -99,6 +99,7 @@
  *     very fine resolution ;-)
  *****************************************************************************/
 #include "plugin.h"
+#include "h264test.h"
 #include "h264player.h"
 #include "lib/helper.h"
 #include "mpeg_settings.h"
@@ -2437,6 +2438,11 @@ enum plugin_status plugin_start(const void* parameter)
     static char videofile[MAX_PATH];
     int status = PLUGIN_OK; /* assume success */
     bool quit = false;
+
+#ifdef SIMULATOR
+    if (parameter != NULL && rb->file_exists("/h264player.test"))
+        return h264test_run((const char *)parameter);
+#endif
 
     if (parameter == NULL) {
         /* No file = GTFO */

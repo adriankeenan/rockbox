@@ -502,8 +502,19 @@ mpeg2_state_t mpeg2_parse(mpeg2dec_t *d)
                 d->pic_skip = d->skip;
             if (d->pic_skip)
             {
+                int report = d->nal_first_slice;
                 consume_nal(d);
-                continue;
+                if (!report)
+                    continue;
+
+                /* Like libmpeg2, still report a skipped picture (with its
+                 * tag) so timestamps can be followed without decoding. The
+                 * frame buffer, if any, is whatever was last displayed. */
+                d->disp_pic.tag = d->cur_tag;
+                d->disp_pic.flags = d->cur_flags | PIC_FLAG_SKIP |
+                    (d->cur_tag != H264DEC_NO_TAG ? PIC_FLAG_TAGS : 0);
+                d->info.display_picture = &d->disp_pic;
+                return STATE_SLICE;
             }
         }
 

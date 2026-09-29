@@ -24,6 +24,7 @@
 #include "lib/grey.h"
 #include "video_out.h"
 #include "mpeg_settings.h"
+#include "h264test.h"
 
 /** Video stream and thread **/
 
@@ -58,9 +59,10 @@ static int video_num_drawn SHAREDBSS_ATTR;
 /* Number skipped since reset */
 static int video_num_skipped SHAREDBSS_ATTR;
 
-/* TODO: Check if 4KB is appropriate - it works for my test streams,
+/* h264bsd needs far more stack than libmpeg2 did (was 4KB); to be tuned from
+   a measured high-water mark. Original note: it works for my test streams,
    so maybe we can reduce it. */
-#define VIDEO_STACKSIZE (4*1024)
+#define VIDEO_STACKSIZE (32*1024)
 static uint32_t video_stack[VIDEO_STACKSIZE / sizeof(uint32_t)] IBSS_ATTR;
 static struct event_queue video_str_queue SHAREDBSS_ATTR;
 static struct queue_sender_list video_str_queue_send SHAREDBSS_ATTR;
@@ -973,6 +975,9 @@ static void video_thread(void)
             td.last_render = *rb->current_tick;
 
             vo_draw_frame(td.info->display_fbuf->buf);
+            H264TEST_FRAME(td.info->sequence, td.info->display_fbuf->buf,
+                           (td.info->display_picture->flags & PIC_FLAG_TAGS) ?
+                               td.info->display_picture->tag : H264DEC_NO_TAG);
             video_num_drawn++;
             break;
 

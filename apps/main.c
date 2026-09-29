@@ -243,6 +243,19 @@ int main(void)
     validate_start_directory_init();
     /* no calls INIT_ATTR functions after this point anymore!
      * see definition of INIT_ATTR in config.h */
+#ifdef SIMULATOR
+    {
+        /* Unattended test hook: run one plugin, then power off. */
+        const char *rock = getenv("ROCKBOX_AUTORUN_PLUGIN");
+        if (rock != NULL)
+        {
+            plugin_load(rock, getenv("ROCKBOX_AUTORUN_PARAM"));
+            sys_poweroff();
+            for (;;)
+                sleep(HZ);
+        }
+    }
+#endif
     CHART(">root_menu");
     root_menu();
 }
