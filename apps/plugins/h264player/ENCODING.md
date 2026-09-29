@@ -16,11 +16,17 @@ ffmpeg -i input.mp4 \
 
 This command was tested: a 1280x720 H.264/AAC MP4 was converted with it, and the result played through the plugin in the simulator with every frame identical to ffmpeg's own decode, and seeking worked.
 
+That version letterboxes: the whole picture is kept and black bars are added. To **fill the whole 320x240 screen instead** (cropping the sides of widescreen video), swap the `-vf` line for:
+
+```
+  -vf "scale=320:240:force_original_aspect_ratio=increase,crop=320:240,setsar=1" \
+```
+
 What each part does:
 
 | Option | Why |
 |---|---|
-| `scale ... pad` | Fits the picture inside 320x240 keeping its aspect ratio, with black bars. Change 320:240 for other screens. |
+| `scale ... pad` | Fits the picture inside 320x240 keeping its aspect ratio, with black bars (use `increase` + `crop` to fill the screen instead). Change 320:240 for other screens. |
 | `-r 24` | Frame rate. Fewer frames means less decoding work. 15-24 is a good range. |
 | `-profile:v baseline` | **Required.** The decoder only supports baseline: no B-frames, no CABAC, progressive only. |
 | `-level 2.1` | Limits the decoder's frame buffering to what QVGA needs. |
