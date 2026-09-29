@@ -21,6 +21,7 @@
  ****************************************************************************/
 #include "plugin.h"
 #include "h264player.h"
+#include "ts_parser.h"
 
 struct stream_parser str_parser SHAREDBSS_ATTR;
 
@@ -215,6 +216,9 @@ uint32_t mpeg_parser_scan_scr(struct stream_scan *sk)
 
 uint32_t mpeg_parser_scan_pts(struct stream_scan *sk, unsigned id)
 {
+    if (str_parser.format == STREAM_FMT_MPEG_TS)
+        return ts_scan_pts(sk, id);
+
     stream_scan_normalize(sk);
 
     if (sk->dir < 0)
@@ -1030,7 +1034,18 @@ bool parser_prepare_image(uint32_t time)
     tries = 1;
 try_again:
 
-    if (mpeg_parser_scan_nal(&sk, NAL_TYPE_SPS))
+    if (str_parser.format == STREAM_FMT_MPEG_TS)
+    {
+        /* Next candidate IDR access unit going backwards */
+        uint32_t pts = ts_scan_keyframe(&sk);
+
+        if (pts != INVALID_TIMESTAMP && pts > time)
+        {
+            DEBUGF("  wrong timestamp: %u\n", (unsigned)pts);
+            goto try_again;
+        }
+    }
+    else if (mpeg_parser_scan_nal(&sk, NAL_TYPE_SPS))
     {
         DEBUGF("SPS found at: %jd\n", (intmax_t) sk.pos);
 
@@ -1130,12 +1145,23 @@ int parser_init_stream(void)
     audio_str.id = MPEG_STREAM_AUDIO_FIRST;
     video_str.id = MPEG_STREAM_VIDEO_FIRST;
 
+    int found = 0;
+    const bool is_ts = ts_probe();
+
+    if (is_ts)
+    {
+        /* Transport stream: streams are identified by PID, the ids here are
+         * just the conventional PES ones used to tell audio from video */
+        found = 1;
+        video_str.id = MPEG_STREAM_VIDEO_FIRST;
+    }
+
     /* Try to pull a video PES - if not found, try video init anyway which
      * should succeed if it really is a video-only stream */
     /* Encoders differ in which video PES id they use (ffmpeg numbers H.264
      * 0xe2), so accept the first id in the video range that has a packet. */
-    int found = 0;
-    for (int vid = MPEG_STREAM_VIDEO_FIRST; vid <= MPEG_STREAM_VIDEO_LAST; vid++)
+    for (int vid = MPEG_STREAM_VIDEO_FIRST;
+         !found && vid <= MPEG_STREAM_VIDEO_LAST; vid++)
     {
         video_str.id = vid;
         video_str.hdr.pos = 0;
@@ -1154,7 +1180,12 @@ int parser_init_stream(void)
     video_str.hdr.pos = 0;
     video_str.hdr.limit = 256*1024;
 
-    if (found)
+    if (is_ts)
+    {
+        str_parser.format = STREAM_FMT_MPEG_TS;
+        str_parser.next_data = ts_next_data;
+    }
+    else if (found)
     {
         /* Found a video packet - assume program stream */
         str_parser.format = STREAM_FMT_MPEG_PS;
@@ -1174,7 +1205,8 @@ int parser_init_stream(void)
         return STREAM_UNSUPPORTED;
     }
 
-    if (str_parser.format == STREAM_FMT_MPEG_PS)
+    if (str_parser.format == STREAM_FMT_MPEG_PS ||
+        str_parser.format == STREAM_FMT_MPEG_TS)
     {
         /* Initalize start_pts and end_pts with the length (in 45kHz units) of
          * the movie. INVALID_TIMESTAMP if the time could not be determined */

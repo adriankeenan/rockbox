@@ -11,6 +11,7 @@ ROOT=$(cd "$HERE/../../../.." && pwd)
 BLD=${2:-${SIM_BUILD_DIR:-$HERE/build/sim_$TARGET}}
 FIX="$HERE/fixtures"
 CLIPS=${CLIPS:-"qvga_testsrc qvga_mandel qcif_testsrc crop_testsrc"}
+EXT=${EXT:-h264}   # container under test: h264 (program stream) or ts
 fail=0
 
 [ -d "$FIX" ] || "$HERE/gen_fixtures.sh" "$FIX" || exit 1
@@ -30,7 +31,7 @@ DISK="$BLD/simdisk"
 
 for c in $CLIPS; do
     rm -f "$DISK"/h264player_test.log "$DISK"/h264player_shot.bmp
-    cp "$FIX/$c.h264" "$DISK/test.h264"
+    cp "$FIX/$c.$EXT" "$DISK/test.h264"
     : > "$DISK/h264player.test"
     (cd "$BLD" && timeout 300 ./rockboxui >run_$c.log 2>&1)
     rc=$?
@@ -38,7 +39,8 @@ for c in $CLIPS; do
     if [ $rc -ne 0 ] || [ ! -s "$LOG" ]; then
         echo "FAIL sim $TARGET $c: rockboxui rc=$rc (see $BLD/run_$c.log)"; fail=1; continue
     fi
-    python3 - "$LOG" "$FIX/$c.md5" "$TARGET $c" <<'P' || fail=1
+    REF="$FIX/$c.md5"; [ "$EXT" = h264 ] || REF="$FIX/$c.$EXT.md5"
+    python3 - "$LOG" "$REF" "$TARGET $c ($EXT)" <<'P' || fail=1
 import sys
 log, ref, name = sys.argv[1], sys.argv[2], sys.argv[3]
 passes, meta = [[]], {}

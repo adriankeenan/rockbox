@@ -22,6 +22,12 @@ gen() {
         -f lavfi -i "sine=frequency=440:sample_rate=44100" -t 4 \
         -c:v libx264 -profile:v baseline -pix_fmt yuv420p -x264-params "${xp}" \
         -c:a mp2 -b:a 128k -f vob "$OUT/$name.h264"
+    # MPEG-TS with MP2 audio (transport stream tests)
+    ffmpeg -v error -y -f lavfi -i "${src}=size=${size}:rate=15" \
+        -f lavfi -i "sine=frequency=440:sample_rate=44100" -t 4 \
+        -c:v libx264 -profile:v baseline -pix_fmt yuv420p -x264-params "${xp}" \
+        -c:a mp2 -b:a 128k -f mpegts "$OUT/$name.ts"
+    ffmpeg -v error -y -i "$OUT/$name.ts" -map 0:v -pix_fmt yuv420p -f framemd5 "$OUT/$name.ts.md5"
 }
 
 gen qvga_testsrc   320x240 testsrc2    "keyint=30:bframes=0:ref=1"
