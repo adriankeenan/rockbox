@@ -1,0 +1,14 @@
+libh264bsd - H.264 baseline profile decoder
+===========================================
+
+Upstream : https://github.com/oneam/h264bsd
+Commit   : 42bcb5d753ad86d84903354bf3c68423c28adb7b
+Origin   : Android Open Source Project software H.264 decoder (On2/Hantro)
+License  : Apache License 2.0 (see LICENSE.md). Compatible with Rockbox's
+           GPL "version 2 or later" via GPLv3.
+
+Only src/*.c and src/*.h are imported. Local modifications are listed below.
+
+Local changes
+-------------
+(none yet)
