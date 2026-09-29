@@ -23,6 +23,9 @@
 #include "h264player.h"
 #include "codecs/libmad/bit.h"
 #include "codecs/libmad/mad.h"
+#include "ts_parser.h"
+#include "aac_dec.h"
+#include "h264test.h"
 
 /** Audio stream and thread **/
 struct pts_queue_slot;
@@ -32,6 +35,8 @@ struct audio_thread_data
     int state;              /* Thread state */
     int status;             /* Media status (STREAM_PLAYING, etc.) */
     int mad_errors;         /* A count of the errors in each frame */
+    bool aac_ready;         /* AAC decoder initialised from a frame header */
+    int aac_errors;         /* Consecutive AAC decode errors */
     unsigned samplerate;    /* Current stream sample rate */
     int nchannels;          /* Number of audio channels */
     struct dsp_config *dsp; /* The DSP we're using */
@@ -64,6 +69,10 @@ static mad_fixed_t mad_frame_overlap[2][32][18] IBSS_ATTR;
 static mad_fixed_t mad_frame_overlap[2][32][18];
 #endif
 
+#define AAC_QUEUE_TARGET   (AAC_MAX_FRAME + 64)
+#define AAC_HEAP_SIZE      (4*1024)   /* libfaad here keeps its state in statics */
+static void *aac_heap;
+
 /** A queue for saving needed information about MPEG audio packets **/
 #define AUDIODESC_QUEUE_LEN  (1 << 5) /* 32 should be way more than sufficient -
                                          if not, the case is handled */
@@ -94,9 +103,16 @@ static inline int audiodesc_queue_count(void)
     return audio_queue.write - audio_queue.read;
 }
 
+/* How much compressed audio to keep buffered: enough for one whole frame */
+static inline ssize_t audio_queue_target(void)
+{
+    return audio_codec == AUDIO_CODEC_AAC ? AAC_QUEUE_TARGET :
+                MPA_MAX_FRAME_SIZE + MAD_BUFFER_GUARD;
+}
+
 static inline bool audiodesc_queue_full(void)
 {
-    return audio_queue.used >= MPA_MAX_FRAME_SIZE + MAD_BUFFER_GUARD ||
+    return audio_queue.used >= audio_queue_target() ||
             audiodesc_queue_count() >= AUDIODESC_QUEUE_LEN;
 }
 
@@ -245,9 +261,15 @@ static void init_mad(void)
 
 /* Sync audio stream to a particular frame - see main decoder loop for
  * detailed remarks */
+static int audio_sync_aac(struct audio_thread_data *td,
+                          struct str_sync_data *sd);
+
 static int audio_sync(struct audio_thread_data *td,
                       struct str_sync_data *sd)
 {
+    if (audio_codec == AUDIO_CODEC_AAC)
+        return audio_sync_aac(td, sd);
+
     int retval = STREAM_MATCH;
     uint32_t sdtime = TS_TO_TICKS(clip_time(&audio_str, sd->time));
     uint32_t time;
@@ -360,6 +382,93 @@ sync_data_end:
     (void)td;
 }
 
+/* Sync to an AAC frame - same contract as audio_sync. Frame durations come
+ * from the ADTS headers, converted to output clock ticks. */
+static int audio_sync_aac(struct audio_thread_data *td,
+                          struct str_sync_data *sd)
+{
+    int retval = STREAM_MATCH;
+    uint32_t sdtime = TS_TO_TICKS(clip_time(&audio_str, sd->time));
+    uint32_t time;
+    uint32_t duration = 0;
+    struct stream *str;
+    struct stream tmp_str;
+
+    if (td->ev.id == STREAM_SYNC)
+    {
+        time = 0;
+        str = &audio_str;
+    }
+    else
+    {
+        time = INVALID_TIMESTAMP;
+        str = &tmp_str;
+        str->id = audio_str.id;
+    }
+
+    str->hdr.pos = sd->sk.pos;
+    str->hdr.limit = sd->sk.pos + sd->sk.len;
+
+    while (1)
+    {
+        unsigned flen, rate, ch, samples;
+        bool at_end = audio_buffer(str, STREAM_PM_RANDOM_ACCESS)
+                        == STREAM_DATA_END;
+
+        if (at_end && audio_queue.used < 7)
+            goto sync_data_end;
+
+        if (adts_parse(audio_queue.ptr, audio_queue.used, &flen, &rate, &ch,
+                       &samples) != 0)
+        {
+            /* Not at a frame header - resync a byte at a time */
+            audio_queue_advance_pos(1);
+            continue;
+        }
+
+        if (audio_queue.used < (ssize_t)flen)
+        {
+            if (at_end)
+                goto sync_data_end;
+            continue; /* Get the rest of the frame */
+        }
+
+        duration = muldiv_uint32(samples, CLOCK_RATE, rate);
+        time = audio_queue.curr->time;
+
+        if (time <= sdtime && sdtime < time + duration)
+        {
+            retval = STREAM_PERFECT_MATCH;
+            break;
+        }
+        else if (time > sdtime)
+        {
+            break;
+        }
+
+        audio_queue_advance_pos(flen);
+        audio_queue.curr->time += duration;
+
+        rb->yield();
+    }
+
+sync_data_end:
+    if (td->ev.id == STREAM_FIND_END_TIME)
+    {
+        if (time != INVALID_TIMESTAMP)
+        {
+            sd->time = TICKS_TO_TS(time) + TICKS_TO_TS(duration);
+            retval = STREAM_PERFECT_MATCH;
+        }
+        else
+        {
+            retval = STREAM_NOT_FOUND;
+        }
+    }
+
+    return retval;
+}
+
 static void audio_thread_msg(struct audio_thread_data *td)
 {
     while (1)
@@ -414,6 +523,22 @@ static void audio_thread_msg(struct audio_thread_data *td)
 
             init_mad();
             td->mad_errors = 0;
+            td->aac_ready = false;
+            td->aac_errors = 0;
+
+            if (audio_codec == AUDIO_CODEC_AAC)
+            {
+                /* Fresh decoder (and heap) after every discontinuity */
+                if (!aac_open(aac_heap, AAC_HEAP_SIZE))
+                    td->status = STREAM_ERROR;
+                rb->dsp_configure(td->dsp, DSP_SET_SAMPLE_DEPTH,
+                                  AAC_SAMPLE_DEPTH);
+            }
+            else
+            {
+                rb->dsp_configure(td->dsp, DSP_SET_SAMPLE_DEPTH,
+                                  MAD_F_FRACBITS);
+            }
 
             audio_queue_reset();
 
@@ -537,7 +662,8 @@ static void audio_thread(void)
 
         case STREAM_DATA_END:
         {
-            if (audio_queue.used > MAD_BUFFER_GUARD)
+            if (audio_queue.used > (audio_codec == AUDIO_CODEC_AAC ?
+                                    7 : MAD_BUFFER_GUARD))
                 break; /* Still have frames to decode */
 
             /* Used up remainder of compressed audio buffer. Wait for
@@ -565,6 +691,81 @@ static void audio_thread(void)
         }
 
         /** Decoding **/
+        if (audio_codec == AUDIO_CODEC_AAC)
+        {
+            struct aac_info info;
+            unsigned flen, rate, ch, samples;
+
+            if (adts_parse(audio_queue.ptr, audio_queue.used, &flen, &rate,
+                           &ch, &samples) != 0)
+            {
+                /* Lost the frame boundary - look for the next header */
+                audio_queue_advance_pos(1);
+                rb->yield();
+                continue;
+            }
+
+            if (audio_queue.used < (ssize_t)flen)
+            {
+                /* Frame not complete yet; buffer more (or run out at the
+                 * end of the data, handled above) */
+                if (audiodesc_queue_full())
+                    audio_queue_advance_pos(1); /* corrupt length */
+                rb->yield();
+                continue;
+            }
+
+            if (!td.aac_ready)
+            {
+                if (!aac_init(audio_queue.ptr, flen))
+                {
+                    audio_queue_advance_pos(1);
+                    continue;
+                }
+                td.aac_ready = true;
+            }
+
+            int aac_stat = aac_decode(audio_queue.ptr, flen, &info);
+            audio_queue_advance_pos(flen);
+
+            if (aac_stat < 0)
+            {
+                if (++td.aac_errors > 200)
+                {
+                    td.state = TSTATE_EOS;
+                    td.status = STREAM_ERROR;
+                    stream_generate_event(&audio_str, STREAM_EV_COMPLETE, 0);
+                    goto message_wait;
+                }
+                rb->yield();
+                continue;
+            }
+
+            td.aac_errors = 0;
+
+            if (info.samplerate != td.samplerate)
+            {
+                td.samplerate = info.samplerate;
+                rb->dsp_configure(td.dsp, DSP_SET_FREQUENCY, td.samplerate);
+            }
+
+            if ((int)info.channels != td.nchannels)
+            {
+                td.nchannels = info.channels;
+                rb->dsp_configure(td.dsp, DSP_SET_STEREO_MODE,
+                                  td.nchannels == 1 ?
+                                    STEREO_MONO : STEREO_NONINTERLEAVED);
+            }
+
+            td.src.remcount  = info.samples;
+            td.src.pin[0]    = info.pcm[0];
+            td.src.pin[1]    = info.pcm[1];
+            td.src.proc_mask = 0;
+
+            td.state  = TSTATE_RENDER_WAIT;
+            goto render_wait;
+        }
+
         mad_stream_buffer(&stream, audio_queue.ptr, audio_queue.used);
 
         int mad_stat = mad_frame_decode(&frame, &stream);
@@ -664,10 +865,13 @@ static void audio_thread(void)
             }
 
             dst.bufcount = size / (2 * sizeof (int16_t));
+            int16_t *out_start = dst.p16out; /* dsp_process advances p16out */
             rb->dsp_process(td.dsp, &td.src, &dst, true);
 
             if (dst.remcount > 0)
             {
+                H264TEST_PCM(out_start, dst.remcount);
+
                 /* Make this data available to DMA */
                 pcm_output_commit_data(dst.remcount * 2 * sizeof(int16_t),
                                        audio_queue.curr->time);
@@ -691,6 +895,11 @@ bool audio_thread_init(void)
     audio_queue.start = mpeg_malloc(AUDIOBUF_ALLOC_SIZE,
                                     MPEG_ALLOC_AUDIOBUF);
     if (audio_queue.start == NULL)
+        return false;
+
+    /* Private heap for libfaad */
+    aac_heap = mpeg_malloc(AAC_HEAP_SIZE, MPEG_ALLOC_CODEC_MALLOC);
+    if (aac_heap == NULL)
         return false;
 
     /* Start the audio thread */

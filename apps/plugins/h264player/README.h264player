@@ -5,7 +5,8 @@ A fork of mpegplayer that decodes H.264 baseline profile with libh264bsd
 (libh264bsd/, Apache-2.0) instead of libmpeg2. Container, audio (MP2/MP3 via
 libmad), buffering, sync and UI are mpegplayer's.
 
-Files: *.h264 in MPEG program stream (PS) with MP2 or MP3 audio.
+Files: *.h264 (MPEG program stream, MP2/MP3 audio) or *.ts (MPEG transport
+stream, AAC-LC / MP2 / MP3 audio). AAC is decoded with Rockbox's libfaad.
 
 Encoding a compatible file
 --------------------------
@@ -32,4 +33,8 @@ Layout
 ------
   h264dec.[ch]   libmpeg2-shaped front end over libh264bsd (NAL reassembly,
                  PTS tagging, skip/flush semantics)
+  ts_parser.[ch] MPEG-TS demuxer (PAT/PMT, per-PID payloads, PTS, seek scans)
+  aac_dec.[ch]   ADTS parsing + libfaad wrapper; faad_glue.c supplies what
+                 libfaad/mdct expect from the codec API (built via
+                 h264player.make from lib/rbcodec/codecs/{libfaad,lib})
   video_thread.c video_out_rockbox.c mpeg_parser.c ...  from mpegplayer

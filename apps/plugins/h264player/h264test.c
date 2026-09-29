@@ -39,6 +39,10 @@ static volatile int frame_count;
 static volatile long last_frame_tick;
 static bool test_active;
 static bool shot_enabled;
+static bool audio_mode;      /* marker file says "audio": capture PCM too */
+static bool pcm_capture;
+static int pcm_fd = -1;
+#define PCM_NAME "/h264player_pcm.raw"
 
 static void log_line(const char *fmt, ...)
 {
@@ -90,6 +94,17 @@ static void write_bmp(const char *name)
 #else
 static void write_bmp(const char *name) { (void)name; }
 #endif
+
+/* Called from the audio thread with what is about to be played (stereo,
+ * 16 bit, at the output clock rate) */
+void h264test_pcm(const int16_t *stereo, int frames)
+{
+    if (pcm_capture && pcm_fd >= 0)
+    {
+        rb->write(pcm_fd, stereo, frames * 2 * sizeof (int16_t));
+        last_frame_tick = *rb->current_tick;   /* audio still running */
+    }
+}
 
 void h264test_frame(const mpeg2_sequence_t *seq, uint8_t *const *buf,
                     uint32_t tag)
@@ -150,6 +165,17 @@ int h264test_run(const char *file)
     if (log_fd < 0)
         return PLUGIN_ERROR;
 
+    {
+        char mode[16] = "";
+        int mfd = rb->open("/h264player.test", O_RDONLY);
+        if (mfd >= 0)
+        {
+            rb->read(mfd, mode, sizeof mode - 1);
+            rb->close(mfd);
+        }
+        audio_mode = rb->strncmp(mode, "audio", 5) == 0;
+    }
+
     init_settings(file);
     settings.limitfps = 0;
     settings.skipframes = 0;
@@ -168,6 +194,12 @@ int h264test_run(const char *file)
     duration = stream_get_duration();
     log_line("DURATION %lu\n", (unsigned long)duration);
 
+    if (audio_mode)
+    {
+        pcm_fd = rb->open(PCM_NAME, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        pcm_capture = pcm_fd >= 0;
+    }
+
     test_active = true;
     shot_enabled = true;
     frame_count = 0;
@@ -180,6 +212,13 @@ int h264test_run(const char *file)
     wait_finished();
     first_pass = frame_count;
     log_line("PASS1 frames=%d\n", first_pass);
+
+    pcm_capture = false;
+    if (pcm_fd >= 0)
+    {
+        rb->close(pcm_fd);
+        pcm_fd = -1;
+    }
 
     stream_stop();
 

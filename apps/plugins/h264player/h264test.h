@@ -9,9 +9,12 @@ void h264test_frame(const mpeg2_sequence_t *seq, uint8_t *const *buf,
                     uint32_t tag);
 /* Unattended run; returns a plugin status */
 int h264test_run(const char *file);
+void h264test_pcm(const int16_t *stereo, int frames);
 #define H264TEST_FRAME(seq, buf, tag) h264test_frame(seq, buf, tag)
+#define H264TEST_PCM(buf, n) h264test_pcm((const int16_t *)(buf), (n))
 #else
 #define H264TEST_FRAME(seq, buf, tag) ((void)0)
+#define H264TEST_PCM(buf, n) ((void)0)
 #endif
 
 #endif /* H264TEST_H */

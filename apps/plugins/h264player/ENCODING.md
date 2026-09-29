@@ -1,8 +1,29 @@
 # Making video files for h264player
 
-h264player plays **H.264 baseline video with MP2 or MP3 audio, in an MPEG program stream (PS)**. Any ffmpeg with `libx264` and the `mp2` encoder can make one. Name the output `something.h264` (the extension the plugin is registered for) and copy it to the device.
+h264player plays **H.264 baseline video** in either of two containers:
 
-## Quick start (320x240 screens, e.g. Eros Q)
+| Container | Audio | Extension | ffmpeg output |
+|---|---|---|---|
+| MPEG program stream (PS) | MP2 (or MP3) | `.h264` | `-f vob` |
+| MPEG transport stream (TS) | AAC-LC **or** MP2/MP3 | `.ts` | `-f mpegts` |
+
+Any ffmpeg with `libx264` can make either. Use the **TS + AAC** recipe if you want AAC audio (ffmpeg cannot put AAC in a program stream), otherwise PS + MP2. Name the output with the extension above (it is what the plugin is registered for) and copy it to the device.
+
+### TS + AAC recipe
+
+```sh
+ffmpeg -i input.mp4 \
+  -vf "scale=320:240:force_original_aspect_ratio=decrease,pad=320:240:(ow-iw)/2:(oh-ih)/2,setsar=1" \
+  -r 24 \
+  -c:v libx264 -profile:v baseline -level 2.1 -pix_fmt yuv420p \
+  -x264-params "ref=3:bframes=0:keyint=48:scenecut=0:bitrate=400:vbv-maxrate=600:vbv-bufsize=1200" \
+  -c:a aac -b:a 96k -ar 44100 -ac 2 \
+  -f mpegts output.ts
+```
+
+Same video settings as below; only the audio (`-c:a aac`) and container (`-f mpegts`, `.ts`) change. AAC at 96 kbps is about as good as MP2 at 128 kbps, so files come out roughly 30 kbps smaller. Mono (`-ac 1 -b:a 64k`) works too. The plugin decodes AAC-LC (what ffmpeg's built-in `aac` encoder makes); use 44100 Hz, the rate this was tested with.
+
+### PS + MP2 recipe (320x240 screens, e.g. Eros Q)
 
 ```sh
 ffmpeg -i input.mp4 \
@@ -22,7 +43,7 @@ That version letterboxes: the whole picture is kept and black bars are added. To
   -vf "scale=320:240:force_original_aspect_ratio=increase,crop=320:240,setsar=1" \
 ```
 
-What each part does:
+The rest of this page applies to both recipes. What each part does:
 
 | Option | Why |
 |---|---|
@@ -37,13 +58,14 @@ What each part does:
 | `scenecut=0` | Stops x264 inserting extra keyframes so the interval stays regular (optional). |
 | `bitrate=400 ...` | Video bitrate in kbps, capped by `vbv-maxrate`/`vbv-bufsize` so bursts stay small. |
 | `-c:a mp2 -b:a 128k -ar 44100` | Audio. See below. |
-| `-f vob` | Writes an MPEG-2 program stream. |
+| `-f vob` | Writes an MPEG-2 program stream (use `-f mpegts` for the AAC recipe above). |
 
 ### Audio
 
-- MP2 (`-c:a mp2`) is the safe choice and the one tested.
-- MP3 (`-c:a libmp3lame -b:a 128k`) should also work, as it goes through the same libmad decoder mpegplayer uses. It has not been tested here.
-- Use 44100 Hz stereo (or mono with `-ac 1` to save space). AAC and Vorbis are **not** supported in this container by this player.
+- **AAC-LC** (`-c:a aac`), in a `.ts` file. Tested at 44100 Hz, stereo and mono.
+- **MP2** (`-c:a mp2`), in either container. Tested.
+- MP3 (`-c:a libmp3lame -b:a 128k`) should also work, as it goes through the same libmad decoder as MP2. It has not been tested here.
+- Use 44100 Hz stereo (or mono with `-ac 1` to save space). Vorbis, Opus, AC-3 and HE-AAC (`aac_he`) are **not** supported.
 
 ## Choosing quality
 
@@ -90,9 +112,9 @@ You should see `h264` with profile `Constrained Baseline` (or `Baseline`), and a
 | Plays for a moment then stops or shows garbage | More than about 4 reference frames, or a level much higher than 2.1 asking for more memory than the decoder has. |
 | Stutters or drops frames | Too much work for the device: lower `-r`, lower the bitrate, or lower the resolution. The plugin's frame-skip setting recovers at the next keyframe. |
 | Seeking jumps far | `keyint` is too large. |
-| No sound | Audio not MP2/MP3. Use 44100 Hz, the rate tested. |
+| No sound | Audio not AAC-LC/MP2/MP3. Use 44100 Hz, the rate tested. |
 | Colours or shape look wrong | Missing `-pix_fmt yuv420p`, or a non-square pixel aspect (keep `setsar=1`). |
 
 ## Not supported
 
-B-frames, CABAC (Main/High profile), interlaced video, 10-bit, AAC audio in this container, and MP4/MKV containers. Use the command above to convert.
+B-frames, CABAC (Main/High profile), interlaced video, 10-bit, HE-AAC/AAC-LATM, 5.1 audio, and MP4/MKV containers. Use the commands above to convert.

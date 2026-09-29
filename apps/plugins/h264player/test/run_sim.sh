@@ -32,7 +32,8 @@ DISK="$BLD/simdisk"
 for c in $CLIPS; do
     rm -f "$DISK"/h264player_test.log "$DISK"/h264player_shot.bmp
     cp "$FIX/$c.$EXT" "$DISK/test.h264"
-    : > "$DISK/h264player.test"
+    if [ -f "$FIX/$c.$EXT.pcm" ]; then echo audio > "$DISK/h264player.test"; else : > "$DISK/h264player.test"; fi
+    rm -f "$DISK/h264player_pcm.raw"
     (cd "$BLD" && timeout 300 ./rockboxui >run_$c.log 2>&1)
     rc=$?
     LOG="$DISK/h264player_test.log"
@@ -75,6 +76,11 @@ else:
         print('PASS sim %s: %d frames exact; seeks resumed at frames %s' % (name, len(p1), starts))
 sys.exit(0 if ok else 1)
 P
+    if [ -f "$FIX/$c.$EXT.pcm" ]; then
+        out=$("$HERE/pcm_compare.py" "$DISK/h264player_pcm.raw" "$FIX/$c.$EXT.pcm" "${MIN_SNR:-35}" 2>&1); rc=$?
+        echo "$out" | sed "s/^/  $TARGET $c: /"
+        [ $rc = 0 ] || fail=1
+    fi
     [ -f "$DISK/h264player_shot.bmp" ] && cp "$DISK/h264player_shot.bmp" "$BLD/shot_$c.bmp"
 done
 
